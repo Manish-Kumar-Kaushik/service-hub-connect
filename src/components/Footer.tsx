@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
@@ -7,11 +7,8 @@ const Footer = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-hero flex items-center justify-center">
-                <span className="font-bold text-sm text-primary-foreground">Q</span>
-              </div>
-              <span className="text-lg font-bold">QuickServe</span>
+            <div className="mb-4">
+              <img src={logo} alt="Any Where Door" className="h-10 w-auto brightness-0 invert" />
             </div>
             <p className="text-primary-foreground/60 text-sm leading-relaxed">
               Your one-stop platform for booking trusted local services. Fast, reliable, and hassle-free.
@@ -63,7 +60,7 @@ const Footer = () => {
 
         <div className="border-t border-primary-foreground/10 pt-6 text-center">
           <p className="text-sm text-primary-foreground/40">
-            © {new Date().getFullYear()} QuickServe. All rights reserved.
+            © {new Date().getFullYear()} Any Where Door. All rights reserved.
           </p>
         </div>
       </div>
