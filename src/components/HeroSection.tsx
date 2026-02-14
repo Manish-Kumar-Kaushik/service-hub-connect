@@ -1,4 +1,6 @@
-import { Search } from "lucide-react";
+import { useState } from "react";
+import { CalendarCheck } from "lucide-react";
+import ServicesSidebar from "./ServicesSidebar";
 
 const serviceImages = [
   { src: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=500&fit=crop", alt: "Home cleaning" },
@@ -18,6 +20,8 @@ const serviceImages = [
 const rotatingTexts = ["Home Service", "Health Checkup", "Salon & Spa", "Education"];
 
 const HeroSection = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-20">
       {/* Pinterest-style grid background */}
@@ -61,21 +65,17 @@ const HeroSection = () => {
           ))}
         </div>
 
-        {/* Search bar */}
-        <div className="bg-card rounded-2xl p-2 flex items-center gap-2 shadow-card-hover max-w-lg mx-auto border border-border/50">
-          <div className="flex items-center gap-2 flex-1 px-3">
-            <Search className="w-5 h-5 text-muted-foreground shrink-0" />
-            <input
-              type="text"
-              placeholder="Search for a service..."
-              className="w-full py-3 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-sm"
-            />
-          </div>
-          <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl text-sm font-semibold shrink-0 transition-colors">
-            Search
-          </button>
-        </div>
+        {/* Book Now button */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-4 rounded-2xl text-lg font-bold shadow-lg transition-all hover:scale-105 inline-flex items-center gap-3"
+        >
+          <CalendarCheck className="w-6 h-6" />
+          Book Now
+        </button>
       </div>
+
+      <ServicesSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
     </section>
   );
 };
