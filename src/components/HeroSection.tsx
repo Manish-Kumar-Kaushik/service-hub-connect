@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { CalendarCheck } from "lucide-react";
 import ServicesSidebar from "./ServicesSidebar";
 import ServiceCards from "./ServiceCards";
@@ -25,10 +26,22 @@ const HeroSection = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+
+  // Listen for service selection from Navbar
+  useEffect(() => {
+    if (location.state?.selectedService) {
+      setSelectedService(location.state.selectedService);
+      setTimeout(() => {
+        cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+      // Clear the state so it doesn't re-trigger
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleSelectService = (item: ServiceItem) => {
     setSelectedService(item);
-    // Scroll to cards after a small delay for rendering
     setTimeout(() => {
       cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 200);
