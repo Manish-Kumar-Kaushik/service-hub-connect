@@ -14,7 +14,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <AuthProvider projectId={import.meta.env.VITE_DESCOPE_PROJECT_ID || "YOUR_PROJECT_ID"}>
+  <AuthProvider projectId="P39YdiiybHrAm5JGa76HDmmBwKNi">
     <AuthContextProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
