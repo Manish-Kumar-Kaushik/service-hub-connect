@@ -4,21 +4,18 @@ import { Menu, X, User, LayoutDashboard, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import ServicesSidebar from "@/components/ServicesSidebar";
-import type { ServiceItem } from "@/components/sidebar/SidebarData";
 import logo from "@/assets/logo.png";
 
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "#about" },
   { label: "Services", href: "#services" },
-  { label: "Category", href: "category" },
+  { label: "Category", href: "/categories" },
   { label: "Contact", href: "#contact" },
 ];
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isAuthenticated, isLoading, userName, userAvatar, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,8 +26,8 @@ const Navbar = () => {
   };
 
   const handleNavClick = (href: string) => {
-    if (href === "category") {
-      setSidebarOpen(true);
+    if (href === "/categories") {
+      navigate("/categories");
       return;
     }
     // For hash links on non-home pages, navigate to home first
@@ -39,10 +36,6 @@ const Navbar = () => {
     }
   };
 
-  const handleSelectService = (item: ServiceItem) => {
-    // Navigate to home with selected service in state
-    navigate("/", { state: { selectedService: item } });
-  };
 
   return (
     <>
@@ -55,9 +48,9 @@ const Navbar = () => {
           <ul className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <li key={link.label}>
-                {link.href === "category" ? (
+                {link.href === "/categories" ? (
                   <button
-                    onClick={() => setSidebarOpen(true)}
+                    onClick={() => navigate("/categories")}
                     className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
@@ -119,9 +112,9 @@ const Navbar = () => {
             <ul className="flex flex-col gap-3 pt-3">
               {navLinks.map((link) => (
                 <li key={link.label}>
-                  {link.href === "category" ? (
+                  {link.href === "/categories" ? (
                     <button
-                      onClick={() => { setSidebarOpen(true); setMobileOpen(false); }}
+                      onClick={() => { navigate("/categories"); setMobileOpen(false); }}
                       className="block w-full text-left py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                     >
                       {link.label}
@@ -154,12 +147,6 @@ const Navbar = () => {
           </div>
         )}
       </nav>
-
-      <ServicesSidebar
-        open={sidebarOpen}
-        onOpenChange={setSidebarOpen}
-        onSelectService={handleSelectService}
-      />
     </>
   );
 };
