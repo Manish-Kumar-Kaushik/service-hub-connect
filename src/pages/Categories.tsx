@@ -3,14 +3,17 @@ import Navbar from "@/components/Navbar";
 import ServicesSidebar from "@/components/ServicesSidebar";
 import ServiceCards from "@/components/ServiceCards";
 import type { ServiceItem } from "@/components/sidebar/SidebarData";
+import { serviceCategories } from "@/components/sidebar/SidebarData";
 
 const Categories = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  const [selectedService, setSelectedService] = useState<{ item: ServiceItem; categoryTitle: string } | null>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
 
   const handleSelectService = (item: ServiceItem) => {
-    setSelectedService(item);
+    // Find the category title for this item
+    const cat = serviceCategories.find((c) => c.items.some((i) => i.label === item.label));
+    setSelectedService({ item, categoryTitle: cat?.title || "Services" });
     setTimeout(() => {
       cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 200);
