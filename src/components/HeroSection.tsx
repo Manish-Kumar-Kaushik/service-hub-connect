@@ -1,9 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { CalendarCheck } from "lucide-react";
-import ServicesSidebar from "./ServicesSidebar";
-import ServiceCards from "./ServiceCards";
-import type { ServiceItem } from "./sidebar/SidebarData";
+import { useState, useEffect } from "react";
 
 const serviceImages = [
   { src: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=500&fit=crop", alt: "Home cleaning" },
@@ -23,96 +18,55 @@ const serviceImages = [
 const rotatingTexts = ["Home Service", "Health Checkup", "Salon & Spa", "Education"];
 
 const HeroSection = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
+  const [textIndex, setTextIndex] = useState(0);
 
-  // Listen for service selection from Navbar
   useEffect(() => {
-    if (location.state?.selectedService) {
-      setSelectedService(location.state.selectedService);
-      setTimeout(() => {
-        cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 200);
-      // Clear the state so it doesn't re-trigger
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
-
-  const handleSelectService = (item: ServiceItem) => {
-    setSelectedService(item);
-    setTimeout(() => {
-      cardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 200);
-  };
+    const interval = setInterval(() => {
+      setTextIndex((prev) => (prev + 1) % rotatingTexts.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <>
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-20">
-        {/* Pinterest-style grid background */}
-        <div className="absolute inset-0 flex justify-center">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 p-4 opacity-40 w-full max-w-7xl">
-            {serviceImages.map((img, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl overflow-hidden ${i % 3 === 0 ? "row-span-2" : ""}`}
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/90 to-background" />
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-20">
+      {/* Pinterest-style grid background */}
+      <div className="absolute inset-0 flex justify-center">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 p-4 opacity-40 w-full max-w-7xl">
+          {serviceImages.map((img, i) => (
+            <div key={i} className={`rounded-2xl overflow-hidden ${i % 3 === 0 ? "row-span-2" : ""}`}>
+              <img src={img.src} alt={img.alt} className="w-full h-full object-cover" loading="lazy" />
+            </div>
+          ))}
         </div>
-
-        {/* Center content */}
-        <div className="relative z-10 text-center px-4 max-w-2xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight mb-2">
-            Book your next
-          </h1>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary leading-tight mb-6">
-            {rotatingTexts[0]}
-          </h2>
-
-          {/* Dots indicator */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            {rotatingTexts.map((_, i) => (
-              <div
-                key={i}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  i === 0 ? "bg-primary" : "bg-muted-foreground/30"
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Book Now button */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-4 rounded-2xl text-lg font-bold shadow-lg transition-all hover:scale-105 inline-flex items-center gap-3"
-          >
-            <CalendarCheck className="w-6 h-6" />
-            Book Now
-          </button>
-        </div>
-
-        <ServicesSidebar
-          open={sidebarOpen}
-          onOpenChange={setSidebarOpen}
-          onSelectService={handleSelectService}
-        />
-      </section>
-
-      {/* Service Cards - shown after selection */}
-      <div ref={cardsRef}>
-        <ServiceCards selectedService={selectedService} />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/90 to-background" />
       </div>
-    </>
+
+      {/* Center content */}
+      <div className="relative z-10 text-center px-4 max-w-2xl mx-auto">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight mb-2">
+          Book your next
+        </h1>
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary leading-tight mb-6 transition-all duration-500">
+          {rotatingTexts[textIndex]}
+        </h2>
+
+        {/* Dots indicator */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          {rotatingTexts.map((_, i) => (
+            <div
+              key={i}
+              className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                i === textIndex ? "bg-primary" : "bg-muted-foreground/30"
+              }`}
+            />
+          ))}
+        </div>
+
+        <p className="text-muted-foreground text-lg">
+          Explore categories to find the best services near you
+        </p>
+      </div>
+    </section>
   );
 };
 

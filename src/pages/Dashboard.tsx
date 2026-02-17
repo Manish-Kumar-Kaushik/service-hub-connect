@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, Edit2, Save, X } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Edit2, Save, X, MapPin, Phone, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,14 @@ interface Booking {
   service_name: string;
   provider_name: string;
   provider_address: string | null;
+  provider_phone: string | null;
   booking_date: string;
   booking_time: string;
   status: string;
   amount: number | null;
   payment_status: string | null;
+  payment_id: string | null;
+  created_at: string;
 }
 
 const Dashboard = () => {
@@ -87,20 +90,34 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-4">
             {bookings.map((b) => (
-              <div key={b.id} className="border border-border rounded-xl p-4 bg-card space-y-2">
+              <div key={b.id} className="border border-border rounded-xl p-5 bg-card space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">{b.service_name}</h3>
-                  <span className={`text-xs px-2 py-1 rounded-full ${b.status === "confirmed" ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
+                  <h3 className="font-semibold text-foreground text-base">{b.service_name}</h3>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${b.status === "confirmed" ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
                     {b.status}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">Provider: {b.provider_name}</p>
-                {b.provider_address && <p className="text-xs text-muted-foreground">{b.provider_address}</p>}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Provider:</span> {b.provider_name}
+                  </p>
+                  {b.provider_phone && (
+                    <p className="text-muted-foreground flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5" /> {b.provider_phone}
+                    </p>
+                  )}
+                  {b.provider_address && (
+                    <p className="text-muted-foreground flex items-center gap-1 sm:col-span-2">
+                      <MapPin className="w-3.5 h-3.5 shrink-0" /> {b.provider_address}
+                    </p>
+                  )}
+                </div>
 
                 {editingId === b.id ? (
                   <div className="flex items-center gap-2 flex-wrap">
                     <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="w-40" />
-                    <Input value={editTime} onChange={(e) => setEditTime(e.target.value)} className="w-32" placeholder="e.g. 10:00 AM" />
+                    <Input value={editTime} onChange={(e) => setEditTime(e.target.value)} className="w-40" placeholder="e.g. 10:00 AM" />
                     <Button size="sm" variant="default" className="gap-1" onClick={() => handleSave(b.id)}>
                       <Save className="w-3 h-3" /> Save
                     </Button>
@@ -109,7 +126,7 @@ const Dashboard = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-4 text-sm flex-wrap">
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <Calendar className="w-3.5 h-3.5" /> {b.booking_date}
                     </span>
@@ -122,9 +139,22 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {b.amount && (
-                  <p className="text-xs text-muted-foreground">Amount: ₹{b.amount} • Payment: {b.payment_status}</p>
-                )}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground border-t border-border pt-2">
+                  {b.amount && (
+                    <span className="flex items-center gap-1">
+                      <CreditCard className="w-3 h-3" /> ₹{b.amount}
+                    </span>
+                  )}
+                  {b.payment_status && (
+                    <span className={`px-2 py-0.5 rounded-full ${b.payment_status === "paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                      {b.payment_status}
+                    </span>
+                  )}
+                  {b.payment_id && (
+                    <span className="text-muted-foreground/60">ID: {b.payment_id.slice(0, 16)}...</span>
+                  )}
+                  <span className="ml-auto">{format(new Date(b.created_at), "dd MMM yyyy")}</span>
+                </div>
               </div>
             ))}
           </div>
