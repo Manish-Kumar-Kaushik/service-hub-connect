@@ -22,30 +22,16 @@ const indianLastNames = [
   "Das", "Bose", "Sen", "Pillai", "Rao", "Kulkarni", "Deshmukh", "Pandey",
 ];
 
-const indianCities = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune",
-  "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Indore", "Bhopal", "Noida",
-  "Gurgaon", "Nagpur",
+const bhilaiDurgAreas = [
+  "Nehru Nagar, Bhilai", "Supela, Bhilai", "Junwani, Bhilai", "Civic Centre, Bhilai",
+  "Sector 1, Bhilai", "Sector 2, Bhilai", "Sector 4, Bhilai", "Sector 6, Bhilai",
+  "Sector 7, Bhilai", "Sector 9, Bhilai", "Sector 10, Bhilai", "Khursipar, Bhilai",
+  "Risali, Bhilai", "Charoda, Bhilai", "Kumhari, Durg", "Padmanabhpur, Durg",
+  "Station Road, Durg", "Malviya Nagar, Durg", "Pulgaon, Durg", "Power House, Durg",
+  "Smriti Nagar, Bhilai", "Ruabandha, Bhilai", "Kohka, Bhilai", "Maroda, Bhilai",
+  "Housing Board Colony, Durg", "Camp 1, Bhilai", "Camp 2, Bhilai", "Vaishali Nagar, Durg",
+  "Shastri Nagar, Durg", "Rajendra Nagar, Durg", "Indira Place, Bhilai", "Old Bhilai",
 ];
-
-const areas: Record<string, string[]> = {
-  Mumbai: ["Andheri West", "Bandra East", "Malad West", "Borivali", "Dadar", "Juhu", "Powai", "Thane"],
-  Delhi: ["Connaught Place", "Karol Bagh", "Saket", "Dwarka", "Rohini", "Lajpat Nagar", "Pitampura", "Janakpuri"],
-  Bangalore: ["Koramangala", "Indiranagar", "Whitefield", "HSR Layout", "JP Nagar", "BTM Layout", "Jayanagar", "Electronic City"],
-  Hyderabad: ["Banjara Hills", "Madhapur", "Gachibowli", "Jubilee Hills", "Secunderabad", "Kukatpally", "Ameerpet", "Begumpet"],
-  Chennai: ["T. Nagar", "Anna Nagar", "Velachery", "Adyar", "Mylapore", "Nungambakkam", "Guindy", "OMR"],
-  Kolkata: ["Salt Lake", "Park Street", "Howrah", "Dum Dum", "New Town", "Ballygunge", "Jadavpur", "Gariahat"],
-  Pune: ["Kothrud", "Viman Nagar", "Hinjewadi", "Shivaji Nagar", "Wakad", "Hadapsar", "Baner", "Aundh"],
-  Ahmedabad: ["Navrangpura", "Satellite", "SG Highway", "Bodakdev", "Paldi", "Maninagar", "Vastrapur", "Bopal"],
-  Jaipur: ["C-Scheme", "Malviya Nagar", "Vaishali Nagar", "Mansarovar", "Raja Park", "Tonk Road", "Sodala", "Ajmer Road"],
-  Lucknow: ["Hazratganj", "Gomti Nagar", "Aliganj", "Aminabad", "Indira Nagar", "Alambagh", "Mahanagar", "Rajajipuram"],
-  Chandigarh: ["Sector 17", "Sector 22", "Sector 35", "Sector 44", "Mohali", "Panchkula", "Zirakpur", "IT Park"],
-  Indore: ["Vijay Nagar", "Palasia", "Sapna Sangeeta", "New Palasia", "MG Road", "Bhawarkua", "Rau", "AB Road"],
-  Bhopal: ["MP Nagar", "Arera Colony", "New Market", "TT Nagar", "Kolar", "Hoshangabad Road", "Bairagarh", "Habibganj"],
-  Noida: ["Sector 18", "Sector 62", "Sector 15", "Sector 50", "Greater Noida", "Sector 137", "Sector 76", "Film City"],
-  Gurgaon: ["DLF Phase 1", "Sohna Road", "MG Road", "Golf Course Road", "Sector 14", "Sector 29", "Udyog Vihar", "Cyber City"],
-  Nagpur: ["Dharampeth", "Sitabuldi", "Sadar", "Manish Nagar", "Civil Lines", "Ramdaspeth", "Laxmi Nagar", "Wardha Road"],
-};
 
 const serviceImageMap: Record<string, string[]> = {
   "Home Services": [
@@ -117,8 +103,6 @@ function generateRating(): { rating: number; reviewCount: number } {
 }
 
 export function generateProviders(serviceLabel: string, categoryTitle: string, count = 16): ServiceProvider[] {
-  const city = randomFrom(indianCities);
-  const cityAreas = areas[city] || areas.Mumbai;
   const images = serviceImageMap[categoryTitle] || defaultImages;
 
   const usedNames = new Set<string>();
@@ -133,7 +117,7 @@ export function generateProviders(serviceLabel: string, categoryTitle: string, c
     } while (usedNames.has(name));
     usedNames.add(name);
 
-    const area = randomFrom(cityAreas);
+    const area = randomFrom(bhilaiDurgAreas);
     const { rating, reviewCount } = generateRating();
 
     providers.push({
@@ -142,7 +126,7 @@ export function generateProviders(serviceLabel: string, categoryTitle: string, c
       phone: generatePhone(),
       rating,
       reviewCount,
-      address: `${Math.floor(1 + Math.random() * 200)}, ${area}, ${city}`,
+      address: `${Math.floor(1 + Math.random() * 200)}, ${area}`,
       imageUrl: images[i % images.length],
       openNow: Math.random() > 0.3,
     });
