@@ -1,12 +1,42 @@
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Star, MapPin, Phone } from "lucide-react";
+import { searchPlaces, type PlaceResult } from "@/lib/googlePlaces";
 import { generateProviders, type ServiceProvider } from "@/lib/mockIndianData";
 import type { ServiceItem } from "@/components/sidebar/SidebarData";
 import BookingDialog from "@/components/BookingDialog";
 
 interface ServiceCardsProps {
   selectedService: { item: ServiceItem; categoryTitle: string } | null;
+}
+
+// Unified provider type for cards
+export interface CardProvider {
+  id: string;
+  name: string;
+  phone: string;
+  rating: number;
+  reviewCount: number;
+  address: string;
+  imageUrl: string;
+  openNow: boolean;
+}
+
+function placeToCardProvider(place: PlaceResult): CardProvider {
+  return {
+    id: place.id,
+    name: place.name,
+    phone: "N/A",
+    rating: place.rating,
+    reviewCount: place.userRatingsTotal,
+    address: place.address,
+    imageUrl: place.photoUrl || "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop",
+    openNow: place.openNow ?? true,
+  };
+}
+
+function mockToCardProvider(p: ServiceProvider): CardProvider {
+  return p;
 }
 
 const CardSkeleton = () => (
@@ -45,7 +75,7 @@ const ProviderCard = ({
   index,
   onSelect,
 }: {
-  provider: ServiceProvider;
+  provider: CardProvider;
   index: number;
   onSelect: () => void;
 }) => {
@@ -86,10 +116,12 @@ const ProviderCard = ({
           {provider.name}
         </h3>
         <StarRating rating={provider.rating} count={provider.reviewCount} />
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Phone className="w-3 h-3 shrink-0" />
-          {provider.phone}
-        </p>
+        {provider.phone !== "N/A" && (
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Phone className="w-3 h-3 shrink-0" />
+            {provider.phone}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground line-clamp-1 flex items-center gap-1">
           <MapPin className="w-3 h-3 shrink-0" />
           {provider.address}
@@ -100,26 +132,42 @@ const ProviderCard = ({
 };
 
 const ServiceCards = ({ selectedService }: ServiceCardsProps) => {
-  const [providers, setProviders] = useState<ServiceProvider[]>([]);
+  const [providers, setProviders] = useState<CardProvider[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<CardProvider | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedService) return;
     setLoading(true);
     setProviders([]);
-    // Simulate small loading delay for UX
-    const timer = setTimeout(() => {
-      const data = generateProviders(
-        selectedService.item.label,
-        selectedService.categoryTitle,
-        16
-      );
-      setProviders(data);
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
+
+    const query = `${selectedService.item.label} in Bhilai Durg Chhattisgarh`;
+
+    searchPlaces(query, 16)
+      .then((places) => {
+        if (places.length > 0) {
+          setProviders(places.map(placeToCardProvider));
+        } else {
+          // Fallback to mock data if no results
+          const data = generateProviders(
+            selectedService.item.label,
+            selectedService.categoryTitle,
+            16
+          );
+          setProviders(data.map(mockToCardProvider));
+        }
+      })
+      .catch(() => {
+        // Fallback to mock data on error
+        const data = generateProviders(
+          selectedService.item.label,
+          selectedService.categoryTitle,
+          16
+        );
+        setProviders(data.map(mockToCardProvider));
+      })
+      .finally(() => setLoading(false));
   }, [selectedService]);
 
   if (!selectedService) return null;
@@ -130,7 +178,7 @@ const ServiceCards = ({ selectedService }: ServiceCardsProps) => {
         <h2 className="text-2xl md:text-3xl font-bold text-foreground">
           {selectedService.item.label}
         </h2>
-        <p className="text-muted-foreground mt-1">Top rated services near you</p>
+        <p className="text-muted-foreground mt-1">Top rated services in Bhilai, Durg, Chhattisgarh</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { ServiceProvider } from "@/lib/mockIndianData";
+import type { CardProvider } from "@/components/ServiceCards";
 
 const timeSlots = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
@@ -29,7 +29,7 @@ const durationOptions = [
 ];
 
 interface BookingDialogProps {
-  provider: ServiceProvider | null;
+  provider: CardProvider | null;
   serviceName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
