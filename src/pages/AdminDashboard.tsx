@@ -294,6 +294,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-4 mt-4">
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" className="gap-2" onClick={exportBookingsCSV} disabled={bookings.length === 0}>
+                <Download className="w-4 h-4" /> Export Bookings CSV
+              </Button>
+            </div>
             {bookings.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No bookings yet.</p>
             ) : (
