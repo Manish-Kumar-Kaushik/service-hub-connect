@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp } from "lucide-react";
+import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
