@@ -72,6 +72,17 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  // Realtime: auto-refresh when bookings change
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bookings-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
+        fetchAll();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const fetchAll = async () => {
     setLoading(true);
     const [provRes, bookRes, custRes] = await Promise.all([
