@@ -79,7 +79,7 @@ const ProviderSignup = () => {
         <div className="pt-24 px-4 max-w-lg mx-auto text-center space-y-6">
           <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto" />
           <h2 className="text-2xl font-bold text-foreground">Registration Complete!</h2>
-          <p className="text-muted-foreground">Ab aapko naye bookings ki notification milegi. Provider Dashboard se jobs manage karein.</p>
+          <p className="text-muted-foreground">You will now receive notifications for new bookings. Manage jobs from the Provider Dashboard.</p>
           <div className="flex gap-3 justify-center">
             <Button onClick={() => navigate("/provider-dashboard")}>Go to Dashboard</Button>
             <Button variant="outline" onClick={() => navigate("/")}>Home</Button>
@@ -103,13 +103,13 @@ const ProviderSignup = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Service Provider Registration</h1>
-            <p className="text-sm text-muted-foreground">Register karein aur customers se directly jobs paayein</p>
+            <p className="text-sm text-muted-foreground">Register and get direct jobs from customers</p>
           </div>
         </div>
 
         {!isAuthenticated && !isLoading ? (
           <div className="text-center py-12 space-y-4">
-            <p className="text-muted-foreground">Pehle login karein provider ban'ne ke liye</p>
+            <p className="text-muted-foreground">Please login first to become a provider</p>
             <Button onClick={() => navigate("/login")}>Login</Button>
           </div>
         ) : (
@@ -118,7 +118,7 @@ const ProviderSignup = () => {
               <div>
                 <label className="text-sm font-medium block mb-1.5">Full Name *</label>
                 <Input
-                  placeholder="Aapka naam"
+                  placeholder="Your full name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -151,9 +151,9 @@ const ProviderSignup = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium block mb-1.5">Address (Bhilai/Durg) *</label>
+              <label className="text-sm font-medium block mb-1.5">Address *</label>
               <Textarea
-                placeholder="Aapka pura address - locality, landmark..."
+                placeholder="Your full address - locality, landmark..."
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
               />

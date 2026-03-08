@@ -129,7 +129,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
           user_id: p.user_id,
           type: "new_booking",
           title: "New Job Available!",
-          message: `${serviceName} ki nayi booking aayi hai - ${format(date, "dd MMM")} ko ${time}. Accept karein!`,
+          message: `New ${serviceName} booking on ${format(date, "dd MMM")} at ${time}. Accept now!`,
           booking_id: bookingData.id,
         }));
         await supabase.from("notifications").insert(notifications);
@@ -254,7 +254,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
                 <FileText className="w-3.5 h-3.5" /> Problem Description
               </label>
               <Textarea
-                placeholder="Aapki actual problem kya hai? Detail mein likhein taaki provider apna pura toolkit lekar aaye... (e.g. Kitchen sink mein leakage hai, pipe purana ho gaya hai)"
+                placeholder="Describe your actual problem in detail so the provider can come fully prepared with the right tools... (e.g. Kitchen sink is leaking, the pipe is old and needs replacement)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -263,7 +263,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             <div>
               <label className="text-sm font-medium block mb-1.5">Your Address *</label>
               <Textarea
-                placeholder="Pura address likhein - house number, street, landmark, area..."
+                placeholder="Full address - house number, street, landmark, area..."
                 value={customerAddress}
                 onChange={(e) => setCustomerAddress(e.target.value)}
                 rows={2}
@@ -279,7 +279,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             </div>
             <Button className="w-full" onClick={() => {
               if (!customerAddress || !customerPhone) {
-                toast({ title: "Required", description: "Address aur phone number daalein.", variant: "destructive" });
+                toast({ title: "Required", description: "Please enter your address and phone number.", variant: "destructive" });
                 return;
               }
               setStep("calendar");
@@ -365,7 +365,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
                 <CreditCard className="w-6 h-6 text-primary" />
                 <div>
                   <p className="font-semibold text-foreground">Pay Online (Razorpay)</p>
-                  <p className="text-xs text-muted-foreground">UPI, Card, Net Banking se abhi pay karein</p>
+                  <p className="text-xs text-muted-foreground">Pay now via UPI, Card, or Net Banking</p>
                 </div>
               </button>
               <button
@@ -375,7 +375,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
                 <Banknote className="w-6 h-6 text-green-600" />
                 <div>
                   <p className="font-semibold text-foreground">Cash on Service</p>
-                  <p className="text-xs text-muted-foreground">Service complete hone ke baad ghar par pay karein</p>
+                  <p className="text-xs text-muted-foreground">Pay at home after the service is completed</p>
                 </div>
               </button>
             </div>
@@ -414,10 +414,10 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             </p>
             {paymentMethod === "cash" && (
               <p className="text-sm text-muted-foreground bg-muted rounded-lg p-3">
-                💰 Cash on Service: Service complete hone ke baad ₹{duration?.rate} pay karein
+                💰 Cash on Service: Pay ₹{duration?.rate} after service is completed
               </p>
             )}
-            <p className="text-xs text-muted-foreground">Service provider ko notify kar diya gaya hai</p>
+            <p className="text-xs text-muted-foreground">The service provider has been notified</p>
             <Button onClick={() => handleClose(false)}>Done</Button>
           </div>
         )}
