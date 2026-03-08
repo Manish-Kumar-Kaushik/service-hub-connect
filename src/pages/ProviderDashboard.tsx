@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Check, X, MapPin, Phone, FileText, Clock, Calendar, CreditCard, User, Send, CheckCircle } from "lucide-react";
+import { ArrowLeft, Bell, Check, X, MapPin, Phone, FileText, Clock, Calendar, CreditCard, User, Send, CheckCircle, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
@@ -30,7 +29,6 @@ interface ProviderBooking {
 }
 
 const ProviderDashboard = () => {
-  const { isAuthenticated, isLoading, userId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<ProviderBooking[]>([]);
@@ -39,23 +37,28 @@ const ProviderDashboard = () => {
   const [quoteBooking, setQuoteBooking] = useState<ProviderBooking | null>(null);
   const [earnings, setEarnings] = useState(0);
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) navigate("/");
-  }, [isLoading, isAuthenticated]);
+  // Dummy provider auth from localStorage
+  const dummyUserId = localStorage.getItem("dummy_provider_id");
+  const dummyName = localStorage.getItem("dummy_provider_name");
 
   useEffect(() => {
-    if (userId) checkProviderAndFetch();
-  }, [userId]);
+    if (!dummyUserId) {
+      navigate("/provider-signup");
+      return;
+    }
+    checkProviderAndFetch();
+  }, [dummyUserId]);
 
+  // Realtime notifications listener
   useEffect(() => {
-    if (!userId) return;
+    if (!dummyUserId) return;
     const channel = supabase
       .channel("provider-notifications")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications" },
         (payload: any) => {
-          if (payload.new.user_id === userId) {
+          if (payload.new.user_id === dummyUserId) {
             toast({ title: "🔔 New Job!", description: payload.new.message });
             checkProviderAndFetch();
           }
@@ -63,16 +66,16 @@ const ProviderDashboard = () => {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [userId]);
+  }, [dummyUserId]);
 
   const checkProviderAndFetch = async () => {
-    if (!userId) return;
+    if (!dummyUserId) return;
     setLoading(true);
 
     const { data: provider } = await supabase
       .from("service_providers")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", dummyUserId)
       .maybeSingle();
 
     if (!provider) {
@@ -82,7 +85,6 @@ const ProviderDashboard = () => {
     }
     setProviderExists(true);
 
-    // Only show bookings assigned to this provider (by provider_id = provider.id)
     const { data: allBookings } = await supabase
       .from("bookings")
       .select("*")
@@ -122,21 +124,18 @@ const ProviderDashboard = () => {
   };
 
   const handleReject = async (booking: ProviderBooking) => {
-    // Mark current provider as rejected
     await supabase.from("bookings").update({ provider_status: "rejected", provider_id: null }).eq("id", booking.id);
 
-    // Find next available provider for this service
     const { data: nextProviders } = await supabase
       .from("service_providers")
       .select("*")
       .contains("services_offered", [booking.service_name])
       .eq("is_active", true)
-      .neq("user_id", userId!)
+      .neq("user_id", dummyUserId!)
       .limit(1);
 
     if (nextProviders && nextProviders.length > 0) {
       const next = nextProviders[0];
-      // Assign to next provider
       await supabase.from("bookings").update({
         provider_id: next.id,
         provider_name: next.name,
@@ -146,7 +145,6 @@ const ProviderDashboard = () => {
         provider_status: "pending",
       }).eq("id", booking.id);
 
-      // Notify next provider
       await supabase.from("notifications").insert({
         user_id: next.user_id,
         type: "new_job",
@@ -157,7 +155,6 @@ const ProviderDashboard = () => {
 
       toast({ title: "Job Rejected", description: "Request forwarded to next available provider." });
     } else {
-      // No provider available
       await supabase.from("notifications").insert({
         user_id: booking.user_id,
         type: "no_provider",
@@ -184,6 +181,12 @@ const ProviderDashboard = () => {
     checkProviderAndFetch();
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("dummy_provider_id");
+    localStorage.removeItem("dummy_provider_name");
+    navigate("/provider-signup");
+  };
+
   const statusColor = (status: string | null) => {
     switch (status) {
       case "accepted": return "bg-green-100 text-green-700";
@@ -206,9 +209,21 @@ const ProviderDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-20 px-4 max-w-4xl mx-auto pb-12">
-        <Button variant="ghost" size="sm" className="mb-4 gap-2" onClick={() => navigate("/")}>
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Button>
+        <div className="flex items-center justify-between mb-2">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/")}>
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Button>
+          <div className="flex items-center gap-2">
+            {dummyName && (
+              <Badge variant="outline" className="text-sm py-1 px-3">
+                {dummyName}
+              </Badge>
+            )}
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleLogout}>
+              <LogOut className="w-4 h-4" /> Logout
+            </Button>
+          </div>
+        </div>
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -232,7 +247,9 @@ const ProviderDashboard = () => {
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-16">
+            <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground text-lg">No new jobs available yet.</p>
+            <p className="text-sm text-muted-foreground mt-2">When a customer books your service, it will appear here in real-time.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -290,7 +307,6 @@ const ProviderDashboard = () => {
                   </div>
                 )}
 
-                {/* Action buttons based on status */}
                 <div className="flex gap-3 pt-2 flex-wrap">
                   {(!b.provider_status || b.provider_status === "pending") && (
                     <>
