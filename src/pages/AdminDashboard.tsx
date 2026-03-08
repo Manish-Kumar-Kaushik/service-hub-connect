@@ -291,7 +291,7 @@ const AdminDashboard = () => {
                   <BarChart3 className="w-5 h-5 text-primary" /> Booking Status Breakdown
                 </h3>
                 <div className="space-y-3">
-                  {["confirmed", "completed", "cancelled", "in_progress"].map((status) => {
+                  {["pending", "confirmed", "accepted", "in_progress", "completed", "cancelled"].map((status) => {
                     const count = bookings.filter((b) => b.status === status).length;
                     const pct = bookings.length > 0 ? (count / bookings.length) * 100 : 0;
                     return (
