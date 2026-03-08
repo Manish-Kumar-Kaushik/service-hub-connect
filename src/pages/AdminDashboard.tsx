@@ -425,6 +425,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
