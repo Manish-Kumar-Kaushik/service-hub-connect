@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Wrench } from "lucide-react";
+import { ArrowRight, Wrench, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const serviceImages = [
   { src: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=500&fit=crop", alt: "Home cleaning" },
@@ -23,6 +24,7 @@ const rotatingTexts = ["Home Service", "Health Checkup", "Salon & Spa", "Educati
 const HeroSection = () => {
   const [textIndex, setTextIndex] = useState(0);
   const navigate = useNavigate();
+  const { isAuthenticated, isProvider, isAdmin } = useAuth();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -75,9 +77,15 @@ const HeroSection = () => {
           <Button size="lg" className="gap-2 px-8 text-base" onClick={() => navigate("/categories")}>
             Browse Services <ArrowRight className="w-5 h-5" />
           </Button>
-          <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/provider-signup")}>
-            <Wrench className="w-5 h-5" /> Register as Provider
-          </Button>
+          {isAuthenticated && !isProvider && !isAdmin ? (
+            <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/dashboard")}>
+              <LayoutDashboard className="w-5 h-5" /> My Bookings
+            </Button>
+          ) : !isAuthenticated ? (
+            <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/provider-signup")}>
+              <Wrench className="w-5 h-5" /> Register as Provider
+            </Button>
+          ) : null}
         </div>
       </div>
     </section>
