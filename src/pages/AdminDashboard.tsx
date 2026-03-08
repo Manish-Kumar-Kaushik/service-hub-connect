@@ -103,7 +103,7 @@ const AdminDashboard = () => {
 
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
 
-  if (checking || isLoading) {
+  if (checking) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
