@@ -345,6 +345,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-4">
+            <div className="flex justify-end mb-4">
+              <Button variant="outline" size="sm" className="gap-2" onClick={exportRevenueCSV} disabled={providerEarnings.length === 0}>
+                <Download className="w-4 h-4" /> Export Revenue CSV
+              </Button>
+            </div>
             <div className="grid grid-cols-1 gap-6">
               {/* Date-wise Revenue Chart */}
               <div className="border border-border rounded-xl p-6 bg-card">
