@@ -10,10 +10,10 @@ const RoleSelectionSection = () => {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            Aap kaun hain?
+            Who are you?
           </h2>
           <p className="text-muted-foreground mt-2">
-            Customer ke roop mein service book karein ya Service Provider ban kar kamayein
+            Book a service as a Customer or earn money as a Service Provider
           </p>
         </div>
 
@@ -25,14 +25,14 @@ const RoleSelectionSection = () => {
             </div>
             <h3 className="text-xl font-bold text-foreground mb-2">Customer</h3>
             <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
-              Ghar baithe koi bhi service book karein — Plumbing, Electrician, Cleaning, Car Service aur bahut kuch. 
-              Razorpay se pay karein ya Cash on Service choose karein.
+              Book any service from home — Plumbing, Electrician, Cleaning, Car Service and much more.
+              Pay via Razorpay or choose Cash on Service.
             </p>
             <ul className="text-sm text-muted-foreground space-y-1.5 mb-6">
               <li>✅ 100+ services available</li>
-              <li>✅ Online payment ya Cash on Service</li>
+              <li>✅ Online payment or Cash on Service</li>
               <li>✅ Real-time tracking & notifications</li>
-              <li>✅ Problem description likh kar bhejein</li>
+              <li>✅ Describe your problem in detail</li>
             </ul>
             <Button className="w-full gap-2" onClick={() => navigate("/categories")}>
               Browse Services <ArrowRight className="w-4 h-4" />
@@ -46,13 +46,13 @@ const RoleSelectionSection = () => {
             </div>
             <h3 className="text-xl font-bold text-foreground mb-2">Service Provider</h3>
             <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
-              Register karein aur directly customers se jobs paayein. 
-              Job accept karein, customer details dekhein aur service provide karein.
+              Register and get jobs directly from customers.
+              Accept jobs, view customer details and provide your service.
             </p>
             <ul className="text-sm text-muted-foreground space-y-1.5 mb-6">
               <li>✅ Direct customer bookings</li>
               <li>✅ Real-time job notifications</li>
-              <li>✅ Customer ka address & problem details</li>
+              <li>✅ Customer address & problem details</li>
               <li>✅ Cash on Service option available</li>
             </ul>
             <Button variant="outline" className="w-full gap-2" onClick={() => navigate("/provider-signup")}>

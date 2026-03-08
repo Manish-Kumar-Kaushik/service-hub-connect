@@ -43,7 +43,6 @@ const ProviderDashboard = () => {
     if (userId) checkProviderAndFetch();
   }, [userId]);
 
-  // Real-time notifications
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -66,7 +65,6 @@ const ProviderDashboard = () => {
     if (!userId) return;
     setLoading(true);
 
-    // Check if user is a provider
     const { data: provider } = await supabase
       .from("service_providers")
       .select("*")
@@ -80,7 +78,6 @@ const ProviderDashboard = () => {
     }
     setProviderExists(true);
 
-    // Fetch bookings matching provider's services
     const { data: allBookings } = await supabase
       .from("bookings")
       .select("*")
@@ -102,16 +99,15 @@ const ProviderDashboard = () => {
       return;
     }
 
-    // Notify customer
     await supabase.from("notifications").insert({
       user_id: booking.user_id,
       type: "booking_accepted",
       title: "Service Provider Accepted!",
-      message: `Aapki ${booking.service_name} booking accept ho gayi hai. Provider jaldi aapke paas aayega.`,
+      message: `Your ${booking.service_name} booking has been accepted. The provider will visit you soon.`,
       booking_id: booking.id,
     });
 
-    toast({ title: "✅ Job Accepted!", description: "Customer ko notify kar diya gaya hai." });
+    toast({ title: "✅ Job Accepted!", description: "Customer has been notified." });
     checkProviderAndFetch();
   };
 
@@ -126,7 +122,7 @@ const ProviderDashboard = () => {
       return;
     }
 
-    toast({ title: "Job Rejected", description: "Aapne yeh job reject kar di." });
+    toast({ title: "Job Rejected", description: "You have rejected this job." });
     checkProviderAndFetch();
   };
 
@@ -155,12 +151,12 @@ const ProviderDashboard = () => {
           <p className="text-muted-foreground">Loading...</p>
         ) : !providerExists ? (
           <div className="text-center py-16 space-y-4">
-            <p className="text-muted-foreground text-lg">Aap abhi registered service provider nahi hain.</p>
+            <p className="text-muted-foreground text-lg">You are not a registered service provider yet.</p>
             <Button onClick={() => navigate("/provider-signup")}>Register as Provider</Button>
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">Abhi koi naye jobs nahi hain. Jab customer booking karega, yahan dikhega.</p>
+            <p className="text-muted-foreground text-lg">No new jobs available yet. When a customer books a service, it will appear here.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -193,7 +189,6 @@ const ProviderDashboard = () => {
                   </p>
                 </div>
 
-                {/* Customer details visible only after accepting */}
                 {b.provider_status === "accepted" && (
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
                     <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
@@ -220,7 +215,6 @@ const ProviderDashboard = () => {
                   </div>
                 )}
 
-                {/* Accept/Reject buttons for pending */}
                 {(!b.provider_status || b.provider_status === "pending") && (
                   <div className="flex gap-3 pt-2">
                     <Button className="flex-1 gap-2" onClick={() => handleAccept(b)}>
