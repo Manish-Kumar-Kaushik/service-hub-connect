@@ -437,6 +437,51 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
+
+              {/* Provider-wise Earnings */}
+              <div className="border border-border rounded-xl p-6 bg-card">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-primary" /> Provider-wise Earnings
+                </h3>
+                {providerEarnings.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No earnings data yet.</p>
+                ) : (
+                  <>
+                    <div className="h-64 mb-6">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={providerEarnings} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${v}`} className="text-muted-foreground" />
+                          <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={130} className="text-muted-foreground" />
+                          <Tooltip
+                            contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
+                            formatter={(value: number, name: string) => [
+                              name === "revenue" ? `₹${value}` : value,
+                              name === "revenue" ? "Revenue" : "Jobs"
+                            ]}
+                          />
+                          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="space-y-3">
+                      {providerEarnings.map((p, i) => (
+                        <div key={p.name} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-muted-foreground w-5">#{i + 1}</span>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{p.name}</p>
+                              <p className="text-xs text-muted-foreground">{p.jobs} completed job{p.jobs > 1 ? "s" : ""}</p>
+                            </div>
+                          </div>
+                          <span className="font-bold text-primary">₹{p.revenue.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
             </div>
           </TabsContent>
         </Tabs>
