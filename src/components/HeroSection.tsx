@@ -24,6 +24,7 @@ const rotatingTexts = ["Home Service", "Health Checkup", "Salon & Spa", "Educati
 const HeroSection = () => {
   const [textIndex, setTextIndex] = useState(0);
   const navigate = useNavigate();
+  const { isAuthenticated, isProvider, isAdmin } = useAuth();
 
   useEffect(() => {
     const interval = setInterval(() => {
