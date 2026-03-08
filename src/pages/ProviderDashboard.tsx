@@ -122,8 +122,52 @@ const ProviderDashboard = () => {
   };
 
   const handleReject = async (booking: ProviderBooking) => {
-    await supabase.from("bookings").update({ provider_status: "rejected" }).eq("id", booking.id);
-    toast({ title: "Job Rejected" });
+    // Mark current provider as rejected
+    await supabase.from("bookings").update({ provider_status: "rejected", provider_id: null }).eq("id", booking.id);
+
+    // Find next available provider for this service
+    const { data: nextProviders } = await supabase
+      .from("service_providers")
+      .select("*")
+      .contains("services_offered", [booking.service_name])
+      .eq("is_active", true)
+      .neq("user_id", userId!)
+      .limit(1);
+
+    if (nextProviders && nextProviders.length > 0) {
+      const next = nextProviders[0];
+      // Assign to next provider
+      await supabase.from("bookings").update({
+        provider_id: next.id,
+        provider_name: next.name,
+        provider_phone: next.phone,
+        provider_email: next.email,
+        provider_address: next.address,
+        provider_status: "pending",
+      }).eq("id", booking.id);
+
+      // Notify next provider
+      await supabase.from("notifications").insert({
+        user_id: next.user_id,
+        type: "new_job",
+        title: "🔔 New Job Request!",
+        message: `New ${booking.service_name} job available. Check your dashboard.`,
+        booking_id: booking.id,
+      });
+
+      toast({ title: "Job Rejected", description: "Request forwarded to next available provider." });
+    } else {
+      // No provider available
+      await supabase.from("notifications").insert({
+        user_id: booking.user_id,
+        type: "no_provider",
+        title: "No Provider Available",
+        message: `Sorry, no provider is currently available for ${booking.service_name}. Please try again later.`,
+        booking_id: booking.id,
+      });
+      toast({ title: "Job Rejected", description: "No other provider available." });
+    }
+
     checkProviderAndFetch();
   };
 
