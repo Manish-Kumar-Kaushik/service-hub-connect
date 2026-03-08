@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, Edit2, Save, X, MapPin, Phone, CreditCard, Star } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowLeft, Calendar, Clock, Edit2, Save, X, MapPin, Phone, CreditCard, Star, TrendingUp } from "lucide-react";
+import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
