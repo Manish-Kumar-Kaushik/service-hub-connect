@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, Edit2, Save, X, MapPin, Phone, CreditCard, Star } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowLeft, Calendar, Clock, Edit2, Save, X, MapPin, Phone, CreditCard, Star, TrendingUp } from "lucide-react";
+import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +90,21 @@ const Dashboard = () => {
 
   const hasReview = (bookingId: string) => reviews.some((r) => r.booking_id === bookingId);
 
+  const bookingChartData = useMemo(() => {
+    const last30 = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
+    return last30.map((day) => ({
+      date: format(day, "dd MMM"),
+      bookings: bookings.filter((b) => isSameDay(new Date(b.created_at), day)).length,
+      spent: bookings
+        .filter((b) => isSameDay(new Date(b.created_at), day) && (b.status === "completed" || b.payment_status === "paid"))
+        .reduce((sum, b) => sum + (b.amount || 0), 0),
+    }));
+  }, [bookings]);
+
+  const totalSpent = bookings
+    .filter((b) => b.status === "completed" || b.payment_status === "paid")
+    .reduce((sum, b) => sum + (b.amount || 0), 0);
+
   const statusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-700";
@@ -108,6 +124,49 @@ const Dashboard = () => {
           <ArrowLeft className="w-4 h-4" /> Back
         </Button>
         <h1 className="text-2xl font-bold text-foreground mb-6">My Bookings</h1>
+
+        {/* Stats + Chart */}
+        {!loading && bookings.length > 0 && (
+          <div className="space-y-4 mb-6">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{bookings.length}</p>
+                <p className="text-xs text-muted-foreground">Total Bookings</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{bookings.filter((b) => b.status === "completed").length}</p>
+                <p className="text-xs text-muted-foreground">Completed</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-primary">₹{totalSpent.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Total Spent</p>
+              </div>
+            </div>
+
+            <div className="border border-border rounded-xl p-5 bg-card">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" /> Booking History (Last 30 Days)
+              </h3>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={bookingChartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} className="text-muted-foreground" />
+                    <YAxis tick={{ fontSize: 10 }} allowDecimals={false} className="text-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
+                      formatter={(value: number, name: string) => [
+                        name === "spent" ? `₹${value}` : value,
+                        name === "spent" ? "Spent" : "Bookings"
+                      ]}
+                    />
+                    <Bar dataKey="bookings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <p className="text-muted-foreground">Loading bookings...</p>
