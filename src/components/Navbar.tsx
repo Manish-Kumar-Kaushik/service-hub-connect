@@ -85,7 +85,10 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate("/dashboard")} className="gap-2 cursor-pointer">
-                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                    <LayoutDashboard className="w-4 h-4" /> My Bookings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/provider-dashboard")} className="gap-2 cursor-pointer">
+                    <Wrench className="w-4 h-4" /> Provider Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/account")} className="gap-2 cursor-pointer">
                     <Settings className="w-4 h-4" /> Account
