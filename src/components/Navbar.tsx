@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User, LayoutDashboard, Settings, LogOut, Wrench } from "lucide-react";
+import { Menu, X, User, LayoutDashboard, Settings, LogOut, Wrench, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
@@ -89,6 +89,9 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/provider-dashboard")} className="gap-2 cursor-pointer">
                     <Wrench className="w-4 h-4" /> Provider Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/admin")} className="gap-2 cursor-pointer">
+                    <Shield className="w-4 h-4" /> Admin Panel
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/account")} className="gap-2 cursor-pointer">
                     <Settings className="w-4 h-4" /> Account

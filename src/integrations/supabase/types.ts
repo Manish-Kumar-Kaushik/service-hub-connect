@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           amount: number | null
@@ -30,9 +48,12 @@ export type Database = {
           provider_address: string | null
           provider_email: string | null
           provider_id: string | null
+          provider_lat: number | null
+          provider_lng: number | null
           provider_name: string
           provider_phone: string | null
           provider_status: string | null
+          quote_id: string | null
           service_name: string
           status: string
           updated_at: string
@@ -53,9 +74,12 @@ export type Database = {
           provider_address?: string | null
           provider_email?: string | null
           provider_id?: string | null
+          provider_lat?: number | null
+          provider_lng?: number | null
           provider_name: string
           provider_phone?: string | null
           provider_status?: string | null
+          quote_id?: string | null
           service_name: string
           status?: string
           updated_at?: string
@@ -76,9 +100,12 @@ export type Database = {
           provider_address?: string | null
           provider_email?: string | null
           provider_id?: string | null
+          provider_lat?: number | null
+          provider_lng?: number | null
           provider_name?: string
           provider_phone?: string | null
           provider_status?: string | null
+          quote_id?: string | null
           service_name?: string
           status?: string
           updated_at?: string
@@ -163,6 +190,85 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          description: string | null
+          id: string
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          provider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          provider_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          provider_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          provider_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_providers: {
         Row: {
           address: string | null
@@ -173,11 +279,13 @@ export type Database = {
           experience_years: number | null
           id: string
           is_active: boolean | null
+          is_verified: boolean | null
           name: string
           phone: string
           services_offered: string[] | null
           updated_at: string
           user_id: string
+          verification_status: string | null
         }
         Insert: {
           address?: string | null
@@ -188,11 +296,13 @@ export type Database = {
           experience_years?: number | null
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
           name: string
           phone: string
           services_offered?: string[] | null
           updated_at?: string
           user_id: string
+          verification_status?: string | null
         }
         Update: {
           address?: string | null
@@ -203,11 +313,13 @@ export type Database = {
           experience_years?: number | null
           id?: string
           is_active?: boolean | null
+          is_verified?: boolean | null
           name?: string
           phone?: string
           services_offered?: string[] | null
           updated_at?: string
           user_id?: string
+          verification_status?: string | null
         }
         Relationships: []
       }
