@@ -50,7 +50,6 @@ interface ProfileRow {
 }
 
 const AdminDashboard = () => {
-  const { isAuthenticated, isLoading, userId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -61,23 +60,17 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) navigate("/");
-  }, [isLoading, isAuthenticated]);
-
-  useEffect(() => {
-    if (userId) checkAdmin();
-  }, [userId]);
-
-  const checkAdmin = async () => {
-    const { data } = await supabase
-      .from("admin_users")
-      .select("id")
-      .eq("user_id", userId!)
-      .maybeSingle();
-    setIsAdmin(!!data);
-    setChecking(false);
-    if (data) fetchAll();
-  };
+    const adminAuth = sessionStorage.getItem("admin_authenticated");
+    if (adminAuth === "true") {
+      setIsAdmin(true);
+      setChecking(false);
+      fetchAll();
+    } else {
+      setIsAdmin(false);
+      setChecking(false);
+      navigate("/admin-login");
+    }
+  }, []);
 
   const fetchAll = async () => {
     setLoading(true);

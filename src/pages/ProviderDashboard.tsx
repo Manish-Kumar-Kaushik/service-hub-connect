@@ -82,10 +82,11 @@ const ProviderDashboard = () => {
     }
     setProviderExists(true);
 
+    // Only show bookings assigned to this provider (by provider_id = provider.id)
     const { data: allBookings } = await supabase
       .from("bookings")
       .select("*")
-      .in("service_name", provider.services_offered || [])
+      .eq("provider_id", provider.id)
       .order("created_at", { ascending: false });
 
     const bks = (allBookings as ProviderBooking[]) || [];
