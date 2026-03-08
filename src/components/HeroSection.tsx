@@ -77,9 +77,15 @@ const HeroSection = () => {
           <Button size="lg" className="gap-2 px-8 text-base" onClick={() => navigate("/categories")}>
             Browse Services <ArrowRight className="w-5 h-5" />
           </Button>
-          <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/provider-signup")}>
-            <Wrench className="w-5 h-5" /> Register as Provider
-          </Button>
+          {isAuthenticated && !isProvider && !isAdmin ? (
+            <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/dashboard")}>
+              <LayoutDashboard className="w-5 h-5" /> My Bookings
+            </Button>
+          ) : !isAuthenticated ? (
+            <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/provider-signup")}>
+              <Wrench className="w-5 h-5" /> Register as Provider
+            </Button>
+          ) : null}
         </div>
       </div>
     </section>
