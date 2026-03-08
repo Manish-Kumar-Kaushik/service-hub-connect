@@ -100,6 +100,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
       user_id: userId,
       service_name: serviceName,
       provider_name: provider.name,
+      provider_id: provider.isRegistered ? provider.id : null,
       provider_address: provider.address,
       provider_phone: provider.phone,
       booking_date: format(date, "yyyy-MM-dd"),
