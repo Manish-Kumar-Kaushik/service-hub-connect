@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { Users, Wrench, ArrowRight } from "lucide-react";
+import { Users, Wrench, ArrowRight, LayoutDashboard, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RoleSelectionSection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, isProvider, isAdmin } = useAuth();
 
   return (
     <section className="py-16 px-4 bg-muted/30" id="roles">
