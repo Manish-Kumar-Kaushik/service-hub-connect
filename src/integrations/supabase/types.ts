@@ -20,13 +20,19 @@ export type Database = {
           booking_date: string
           booking_time: string
           created_at: string
+          customer_address: string | null
+          customer_phone: string | null
+          description: string | null
           id: string
           payment_id: string | null
+          payment_method: string | null
           payment_status: string | null
           provider_address: string | null
           provider_email: string | null
+          provider_id: string | null
           provider_name: string
           provider_phone: string | null
+          provider_status: string | null
           service_name: string
           status: string
           updated_at: string
@@ -37,13 +43,19 @@ export type Database = {
           booking_date: string
           booking_time: string
           created_at?: string
+          customer_address?: string | null
+          customer_phone?: string | null
+          description?: string | null
           id?: string
           payment_id?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           provider_address?: string | null
           provider_email?: string | null
+          provider_id?: string | null
           provider_name: string
           provider_phone?: string | null
+          provider_status?: string | null
           service_name: string
           status?: string
           updated_at?: string
@@ -54,19 +66,66 @@ export type Database = {
           booking_date?: string
           booking_time?: string
           created_at?: string
+          customer_address?: string | null
+          customer_phone?: string | null
+          description?: string | null
           id?: string
           payment_id?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           provider_address?: string | null
           provider_email?: string | null
+          provider_id?: string | null
           provider_name?: string
           provider_phone?: string | null
+          provider_status?: string | null
           service_name?: string
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -99,6 +158,54 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      service_providers: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          category: string | null
+          created_at: string
+          email: string | null
+          experience_years: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string
+          services_offered: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          category?: string | null
+          created_at?: string
+          email?: string | null
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone: string
+          services_offered?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          category?: string | null
+          created_at?: string
+          email?: string | null
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string
+          services_offered?: string[] | null
           updated_at?: string
           user_id?: string
         }
