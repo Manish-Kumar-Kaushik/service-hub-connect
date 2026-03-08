@@ -17,14 +17,18 @@ interface QuoteDialogProps {
 }
 
 const QuoteDialog = ({ bookingId, serviceName, open, onOpenChange, onQuoteSent }: QuoteDialogProps) => {
-  const { userId } = useAuth();
+  const { userId: authUserId } = useAuth();
   const { toast } = useToast();
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Support both Descope auth and dummy provider login
+  const dummyProviderId = localStorage.getItem("dummy_provider_id");
+  const effectiveUserId = authUserId || dummyProviderId;
+
   const handleSendQuote = async () => {
-    if (!amount || !userId) return;
+    if (!amount || !effectiveUserId) return;
     setLoading(true);
 
     const { error } = await supabase.from("quotes").insert({
