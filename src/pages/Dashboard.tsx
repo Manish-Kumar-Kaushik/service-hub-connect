@@ -90,6 +90,21 @@ const Dashboard = () => {
 
   const hasReview = (bookingId: string) => reviews.some((r) => r.booking_id === bookingId);
 
+  const bookingChartData = useMemo(() => {
+    const last30 = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
+    return last30.map((day) => ({
+      date: format(day, "dd MMM"),
+      bookings: bookings.filter((b) => isSameDay(new Date(b.created_at), day)).length,
+      spent: bookings
+        .filter((b) => isSameDay(new Date(b.created_at), day) && (b.status === "completed" || b.payment_status === "paid"))
+        .reduce((sum, b) => sum + (b.amount || 0), 0),
+    }));
+  }, [bookings]);
+
+  const totalSpent = bookings
+    .filter((b) => b.status === "completed" || b.payment_status === "paid")
+    .reduce((sum, b) => sum + (b.amount || 0), 0);
+
   const statusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-700";
