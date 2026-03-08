@@ -267,7 +267,7 @@ const ProviderDashboard = () => {
                     </>
                   )}
 
-                  {b.provider_status === "accepted" && (b.status === "in_progress" || b.status === "quote_sent") && b.status !== "completed" && (
+                  {b.provider_status === "accepted" && (b.status === "in_progress" || b.status === "quote_sent") && (
                     <>
                       <Button className="gap-2" onClick={() => handleMarkComplete(b)}>
                         <CheckCircle className="w-4 h-4" /> Mark Complete
