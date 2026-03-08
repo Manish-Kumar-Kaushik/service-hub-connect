@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp, Download } from "lucide-react";
-import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { format } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import EarningsAnalytics from "@/components/EarningsAnalytics";
 
 interface Provider {
   id: string;
@@ -113,19 +114,6 @@ const AdminDashboard = () => {
     .filter((b) => b.status === "completed" || b.payment_status === "paid")
     .reduce((sum, b) => sum + (b.amount || 0), 0);
 
-  const revenueChartData = useMemo(() => {
-    const last30 = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
-    return last30.map((day) => {
-      const dayBookings = bookings.filter(
-        (b) => (b.status === "completed" || b.payment_status === "paid") && isSameDay(new Date(b.created_at), day)
-      );
-      return {
-        date: format(day, "dd MMM"),
-        revenue: dayBookings.reduce((sum, b) => sum + (b.amount || 0), 0),
-        bookings: bookings.filter((b) => isSameDay(new Date(b.created_at), day)).length,
-      };
-    });
-  }, [bookings]);
 
   const providerEarnings = useMemo(() => {
     const paidBookings = bookings.filter((b) => b.status === "completed" || b.payment_status === "paid");
@@ -351,52 +339,8 @@ const AdminDashboard = () => {
               </Button>
             </div>
             <div className="grid grid-cols-1 gap-6">
-              {/* Date-wise Revenue Chart */}
-              <div className="border border-border rounded-xl p-6 bg-card">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" /> Date-wise Revenue (Last 30 Days)
-                </h3>
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueChartData}>
-                      <defs>
-                        <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} className="text-muted-foreground" />
-                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${v}`} className="text-muted-foreground" />
-                      <Tooltip
-                        contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
-                        formatter={(value: number) => [`₹${value}`, "Revenue"]}
-                      />
-                      <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="url(#revenueGradient)" strokeWidth={2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Date-wise Bookings Chart */}
-              <div className="border border-border rounded-xl p-6 bg-card">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-accent" /> Date-wise Bookings (Last 30 Days)
-                </h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={revenueChartData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} className="text-muted-foreground" />
-                      <YAxis tick={{ fontSize: 11 }} allowDecimals={false} className="text-muted-foreground" />
-                      <Tooltip
-                        contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
-                      />
-                      <Bar dataKey="bookings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+              {/* Unified Earnings & Services Analytics */}
+              <EarningsAnalytics bookings={bookings} title="Earnings & Services Analytics" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="border border-border rounded-xl p-6 bg-card">
