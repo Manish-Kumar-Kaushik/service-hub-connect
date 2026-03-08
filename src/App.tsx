@@ -7,6 +7,7 @@ import { AuthProvider } from "@descope/react-sdk";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import Account from "./pages/Account";
 import Dashboard from "./pages/Dashboard";
 import ProviderSignup from "./pages/ProviderSignup";
@@ -28,6 +29,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/account" element={<Account />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/provider-signup" element={<ProviderSignup />} />
