@@ -1,0 +1,1 @@
+DELETE FROM service_providers WHERE user_id = 'U39jcxQO0eYJuIZ1vAylNxzpPBsT';
