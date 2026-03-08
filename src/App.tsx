@@ -11,6 +11,7 @@ import Account from "./pages/Account";
 import Dashboard from "./pages/Dashboard";
 import ProviderSignup from "./pages/ProviderSignup";
 import ProviderDashboard from "./pages/ProviderDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
 
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/provider-signup" element={<ProviderSignup />} />
               <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
