@@ -140,6 +140,34 @@ const AdminDashboard = () => {
   }, [bookings]);
 
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
+  const downloadCSV = (filename: string, headers: string[], rows: string[][]) => {
+    const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${(c ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportBookingsCSV = () => {
+    const headers = ["Service", "Provider", "Date", "Time", "Status", "Payment Method", "Payment Status", "Amount"];
+    const rows = bookings.map((b) => [
+      b.service_name, b.provider_name, b.booking_date, b.booking_time,
+      b.status, b.payment_method || "N/A", b.payment_status || "pending", String(b.amount || 0),
+    ]);
+    downloadCSV("bookings_export.csv", headers, rows);
+    toast({ title: "✅ Bookings CSV downloaded!" });
+  };
+
+  const exportRevenueCSV = () => {
+    const headers = ["Provider", "Completed Jobs", "Total Revenue (₹)"];
+    const rows = providerEarnings.map((p) => [p.name, String(p.jobs), String(p.revenue)]);
+    rows.push(["TOTAL", String(providerEarnings.reduce((s, p) => s + p.jobs, 0)), String(totalRevenue)]);
+    downloadCSV("revenue_export.csv", headers, rows);
+    toast({ title: "✅ Revenue CSV downloaded!" });
+  };
 
   if (checking) {
     return (
