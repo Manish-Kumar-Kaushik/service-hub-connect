@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Check, X, MapPin, Phone, FileText, Clock, Calendar, CreditCard, User, Send, CheckCircle, LogOut } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowLeft, Bell, Check, X, MapPin, Phone, FileText, Clock, Calendar, CreditCard, User, Send, CheckCircle, LogOut, TrendingUp } from "lucide-react";
+import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -99,6 +100,17 @@ const ProviderDashboard = () => {
     );
     setLoading(false);
   };
+
+  const earningsChartData = useMemo(() => {
+    const last30 = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
+    const paidBookings = bookings.filter((b) => b.provider_status === "accepted" && b.payment_status === "paid");
+    return last30.map((day) => ({
+      date: format(day, "dd MMM"),
+      earnings: paidBookings
+        .filter((b) => isSameDay(new Date(b.created_at), day))
+        .reduce((sum, b) => sum + (b.amount || 0), 0),
+    }));
+  }, [bookings]);
 
   const handleAccept = async (booking: ProviderBooking) => {
     const { error } = await supabase
@@ -253,6 +265,34 @@ const ProviderDashboard = () => {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Date-wise Earnings Chart */}
+            {earnings > 0 && (
+              <div className="border border-border rounded-xl p-5 bg-card">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" /> Earnings (Last 30 Days)
+                </h3>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={earningsChartData}>
+                      <defs>
+                        <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} className="text-muted-foreground" />
+                      <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₹${v}`} className="text-muted-foreground" />
+                      <Tooltip
+                        contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
+                        formatter={(value: number) => [`₹${value}`, "Earnings"]}
+                      />
+                      <Area type="monotone" dataKey="earnings" stroke="hsl(var(--primary))" fill="url(#earningsGrad)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
             {bookings.map((b) => (
               <div key={b.id} className="border border-border rounded-xl p-5 bg-card space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
