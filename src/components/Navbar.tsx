@@ -6,19 +6,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Category", href: "/categories" },
-  { label: "Contact", href: "#contact" },
-];
-
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated, isLoading, userName, userAvatar, logout } = useAuth();
+  const { isAuthenticated, isLoading, userName, userAvatar, role, isAdmin, isProvider, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "About", href: "#about" },
+    { label: "Services", href: "#services" },
+    ...(!isAdmin ? [{ label: "Category", href: "/categories" }] : []),
+    { label: "Contact", href: "#contact" },
+  ];
 
   const handleLogout = async () => {
     await logout();
@@ -30,12 +30,18 @@ const Navbar = () => {
       navigate("/categories");
       return;
     }
-    // For hash links on non-home pages, navigate to home first
     if (href.startsWith("#") && location.pathname !== "/") {
       navigate("/" + href);
     }
   };
 
+  const getRoleBadge = () => {
+    if (isAdmin) return { label: "Admin", color: "bg-red-100 text-red-700" };
+    if (isProvider) return { label: "Provider", color: "bg-accent/10 text-accent" };
+    return null;
+  };
+
+  const roleBadge = getRoleBadge();
 
   return (
     <>
@@ -81,18 +87,41 @@ const Navbar = () => {
                       </div>
                     )}
                     <span className="text-sm font-medium text-foreground">{userName}</span>
+                    {roleBadge && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${roleBadge.color}`}>
+                        {roleBadge.label}
+                      </span>
+                    )}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")} className="gap-2 cursor-pointer">
-                    <LayoutDashboard className="w-4 h-4" /> My Bookings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/provider-dashboard")} className="gap-2 cursor-pointer">
-                    <Wrench className="w-4 h-4" /> Provider Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/admin")} className="gap-2 cursor-pointer">
-                    <Shield className="w-4 h-4" /> Admin Panel
-                  </DropdownMenuItem>
+                  {/* Admin menu */}
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/admin")} className="gap-2 cursor-pointer">
+                        <Shield className="w-4 h-4" /> Admin Dashboard
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {/* Provider menu */}
+                  {isProvider && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/provider-dashboard")} className="gap-2 cursor-pointer">
+                        <Wrench className="w-4 h-4" /> Provider Dashboard
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {/* Customer menu */}
+                  {!isAdmin && !isProvider && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/dashboard")} className="gap-2 cursor-pointer">
+                        <LayoutDashboard className="w-4 h-4" /> My Bookings
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
                   <DropdownMenuItem onClick={() => navigate("/account")} className="gap-2 cursor-pointer">
                     <Settings className="w-4 h-4" /> Account
                   </DropdownMenuItem>
@@ -102,9 +131,14 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/login")}>
-                <User className="w-4 h-4" /> Login
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/login")}>
+                  <User className="w-4 h-4" /> Login
+                </Button>
+                <Button variant="ghost" size="sm" className="gap-2 text-xs text-muted-foreground" onClick={() => navigate("/admin-login")}>
+                  <Shield className="w-3.5 h-3.5" /> Admin
+                </Button>
+              </div>
             )}
           </div>
 
@@ -140,15 +174,27 @@ const Navbar = () => {
             {!isLoading && (
               isAuthenticated ? (
                 <div className="space-y-1 mt-3 border-t border-border pt-3">
-                  <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">My Bookings</button>
-                  <button onClick={() => { navigate("/provider-dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Provider Dashboard</button>
+                  {isAdmin && (
+                    <button onClick={() => { navigate("/admin"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Admin Dashboard</button>
+                  )}
+                  {isProvider && (
+                    <button onClick={() => { navigate("/provider-dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Provider Dashboard</button>
+                  )}
+                  {!isAdmin && !isProvider && (
+                    <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">My Bookings</button>
+                  )}
                   <button onClick={() => { navigate("/account"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Account</button>
                   <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-destructive hover:text-destructive/80">Logout</button>
                 </div>
               ) : (
-                <Button variant="outline" size="sm" className="mt-3 w-full gap-2" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
-                  <User className="w-4 h-4" /> Login
-                </Button>
+                <div className="flex gap-2 mt-3">
+                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
+                    <User className="w-4 h-4" /> Login
+                  </Button>
+                  <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => { navigate("/admin-login"); setMobileOpen(false); }}>
+                    <Shield className="w-3.5 h-3.5" /> Admin
+                  </Button>
+                </div>
               )
             )}
           </div>

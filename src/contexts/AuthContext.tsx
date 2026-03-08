@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useSession, useUser, useDescope } from "@descope/react-sdk";
 import { supabase } from "@/integrations/supabase/client";
 
+type UserRole = "customer" | "provider" | "admin";
+
 interface UserProfile {
   display_name: string | null;
   email: string | null;
@@ -18,6 +20,9 @@ interface AuthContextType {
   userEmail: string | null;
   userAvatar: string | null;
   profile: UserProfile | null;
+  role: UserRole;
+  isAdmin: boolean;
+  isProvider: boolean;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -30,6 +35,9 @@ const AuthContext = createContext<AuthContextType>({
   userEmail: null,
   userAvatar: null,
   profile: null,
+  role: "customer",
+  isAdmin: false,
+  isProvider: false,
   logout: async () => {},
   refreshProfile: async () => {},
 });
@@ -41,6 +49,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useUser();
   const { logout: descopeLogout } = useDescope();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [role, setRole] = useState<UserRole>("customer");
 
   const userId = user?.userId || null;
   const userName = user?.name || user?.email?.split("@")[0] || null;
@@ -66,9 +75,41 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const detectRole = async () => {
+    if (!userId) {
+      setRole("customer");
+      return;
+    }
+
+    // Check admin first
+    const { data: adminData } = await supabase
+      .from("admin_users")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (adminData) {
+      setRole("admin");
+      return;
+    }
+
+    // Check provider
+    const { data: providerData } = await supabase
+      .from("service_providers")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (providerData) {
+      setRole("provider");
+      return;
+    }
+
+    setRole("customer");
+  };
+
   useEffect(() => {
     if (isAuthenticated && userId) {
-      // Upsert profile on login
       supabase
         .from("profiles")
         .upsert(
@@ -80,15 +121,20 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
           },
           { onConflict: "user_id" }
         )
-        .then(() => refreshProfile());
+        .then(() => {
+          refreshProfile();
+          detectRole();
+        });
     } else {
       setProfile(null);
+      setRole("customer");
     }
   }, [isAuthenticated, userId]);
 
   const logout = async () => {
     await descopeLogout();
     setProfile(null);
+    setRole("customer");
   };
 
   return (
@@ -101,6 +147,9 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         userEmail,
         userAvatar,
         profile,
+        role,
+        isAdmin: role === "admin",
+        isProvider: role === "provider",
         logout,
         refreshProfile,
       }}
