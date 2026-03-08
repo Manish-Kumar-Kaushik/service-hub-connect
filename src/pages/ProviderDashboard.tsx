@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import QuoteDialog from "@/components/QuoteDialog";
 import ProviderLocationSharer from "@/components/ProviderLocationSharer";
+import EarningsAnalytics from "@/components/EarningsAnalytics";
 
 interface ProviderBooking {
   id: string;
