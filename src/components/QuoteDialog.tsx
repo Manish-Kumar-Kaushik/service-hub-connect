@@ -33,7 +33,7 @@ const QuoteDialog = ({ bookingId, serviceName, open, onOpenChange, onQuoteSent }
 
     const { error } = await supabase.from("quotes").insert({
       booking_id: bookingId,
-      provider_id: userId,
+      provider_id: effectiveUserId,
       amount: parseFloat(amount),
       description: description || null,
       status: "pending",
