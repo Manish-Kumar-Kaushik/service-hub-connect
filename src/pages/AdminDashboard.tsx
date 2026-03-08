@@ -72,6 +72,17 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  // Realtime: auto-refresh when bookings change
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bookings-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
+        fetchAll();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const fetchAll = async () => {
     setLoading(true);
     const [provRes, bookRes, custRes] = await Promise.all([
@@ -98,7 +109,7 @@ const AdminDashboard = () => {
   };
 
   const totalRevenue = bookings
-    .filter((b) => b.payment_status === "paid")
+    .filter((b) => b.status === "completed" || b.payment_status === "paid")
     .reduce((sum, b) => sum + (b.amount || 0), 0);
 
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
@@ -280,7 +291,7 @@ const AdminDashboard = () => {
                   <BarChart3 className="w-5 h-5 text-primary" /> Booking Status Breakdown
                 </h3>
                 <div className="space-y-3">
-                  {["confirmed", "completed", "cancelled", "in_progress"].map((status) => {
+                  {["pending", "confirmed", "accepted", "in_progress", "completed", "cancelled"].map((status) => {
                     const count = bookings.filter((b) => b.status === status).length;
                     const pct = bookings.length > 0 ? (count / bookings.length) * 100 : 0;
                     return (
