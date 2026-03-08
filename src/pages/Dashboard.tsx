@@ -125,6 +125,49 @@ const Dashboard = () => {
         </Button>
         <h1 className="text-2xl font-bold text-foreground mb-6">My Bookings</h1>
 
+        {/* Stats + Chart */}
+        {!loading && bookings.length > 0 && (
+          <div className="space-y-4 mb-6">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{bookings.length}</p>
+                <p className="text-xs text-muted-foreground">Total Bookings</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{bookings.filter((b) => b.status === "completed").length}</p>
+                <p className="text-xs text-muted-foreground">Completed</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-primary">₹{totalSpent.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Total Spent</p>
+              </div>
+            </div>
+
+            <div className="border border-border rounded-xl p-5 bg-card">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" /> Booking History (Last 30 Days)
+              </h3>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={bookingChartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} className="text-muted-foreground" />
+                    <YAxis tick={{ fontSize: 10 }} allowDecimals={false} className="text-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
+                      formatter={(value: number, name: string) => [
+                        name === "spent" ? `₹${value}` : value,
+                        name === "spent" ? "Spent" : "Bookings"
+                      ]}
+                    />
+                    <Bar dataKey="bookings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <p className="text-muted-foreground">Loading bookings...</p>
         ) : bookings.length === 0 ? (
