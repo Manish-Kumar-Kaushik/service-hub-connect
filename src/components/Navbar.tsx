@@ -137,7 +137,8 @@ const Navbar = () => {
             {!isLoading && (
               isAuthenticated ? (
                 <div className="space-y-1 mt-3 border-t border-border pt-3">
-                  <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Dashboard</button>
+                  <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">My Bookings</button>
+                  <button onClick={() => { navigate("/provider-dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Provider Dashboard</button>
                   <button onClick={() => { navigate("/account"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Account</button>
                   <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-destructive hover:text-destructive/80">Logout</button>
                 </div>
