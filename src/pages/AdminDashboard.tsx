@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp } from "lucide-react";
+import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp, Download } from "lucide-react";
 import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { Button } from "@/components/ui/button";
