@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import Dashboard from "./pages/Dashboard";
+import ProviderSignup from "./pages/ProviderSignup";
+import ProviderDashboard from "./pages/ProviderDashboard";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
 
@@ -27,6 +29,8 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/account" element={<Account />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/provider-signup" element={<ProviderSignup />} />
+              <Route path="/provider-dashboard" element={<ProviderDashboard />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

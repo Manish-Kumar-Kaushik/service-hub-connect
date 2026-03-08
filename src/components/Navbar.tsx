@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User, LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { Menu, X, User, LayoutDashboard, Settings, LogOut, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
@@ -85,7 +85,10 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate("/dashboard")} className="gap-2 cursor-pointer">
-                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                    <LayoutDashboard className="w-4 h-4" /> My Bookings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/provider-dashboard")} className="gap-2 cursor-pointer">
+                    <Wrench className="w-4 h-4" /> Provider Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/account")} className="gap-2 cursor-pointer">
                     <Settings className="w-4 h-4" /> Account
@@ -134,7 +137,8 @@ const Navbar = () => {
             {!isLoading && (
               isAuthenticated ? (
                 <div className="space-y-1 mt-3 border-t border-border pt-3">
-                  <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Dashboard</button>
+                  <button onClick={() => { navigate("/dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">My Bookings</button>
+                  <button onClick={() => { navigate("/provider-dashboard"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Provider Dashboard</button>
                   <button onClick={() => { navigate("/account"); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary">Account</button>
                   <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="block w-full text-left py-2 text-sm text-destructive hover:text-destructive/80">Logout</button>
                 </div>

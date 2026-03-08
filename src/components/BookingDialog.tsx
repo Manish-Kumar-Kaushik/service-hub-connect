@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Phone, CreditCard, PartyPopper } from "lucide-react";
+import { CalendarIcon, Phone, CreditCard, PartyPopper, Banknote, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +37,7 @@ interface BookingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "actions" | "calendar" | "time" | "duration" | "confirm" | "success";
+type Step = "actions" | "description" | "calendar" | "time" | "duration" | "payment-method" | "confirm" | "success";
 
 declare global {
   interface Window {
@@ -48,6 +50,10 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState<typeof durationOptions[0] | null>(null);
+  const [description, setDescription] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cash">("razorpay");
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, userId, userName, userEmail, profile } = useAuth();
   const { toast } = useToast();
@@ -57,6 +63,10 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
     setDate(undefined);
     setTime("");
     setDuration(null);
+    setDescription("");
+    setCustomerAddress("");
+    setCustomerPhone("");
+    setPaymentMethod("razorpay");
     setLoading(false);
   };
 
@@ -83,7 +93,51 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
     });
   };
 
-  const handlePay = async () => {
+  const saveBooking = async (paymentId?: string) => {
+    if (!date || !time || !provider || !duration || !userId) return;
+
+    const { data: bookingData, error } = await supabase.from("bookings").insert({
+      user_id: userId,
+      service_name: serviceName,
+      provider_name: provider.name,
+      provider_address: provider.address,
+      provider_phone: provider.phone,
+      booking_date: format(date, "yyyy-MM-dd"),
+      booking_time: `${time} (${duration.label})`,
+      payment_id: paymentId || null,
+      payment_status: paymentMethod === "razorpay" ? "paid" : "pending",
+      payment_method: paymentMethod,
+      amount: duration.rate,
+      status: "confirmed",
+      description: description || null,
+      customer_address: customerAddress || profile?.address || null,
+      customer_phone: customerPhone || profile?.phone || null,
+      provider_status: "pending",
+    }).select("id").single();
+
+    if (error) throw error;
+
+    // Notify matching providers
+    if (bookingData) {
+      const { data: providers } = await supabase
+        .from("service_providers")
+        .select("user_id")
+        .contains("services_offered", [serviceName]);
+
+      if (providers && providers.length > 0) {
+        const notifications = providers.map((p) => ({
+          user_id: p.user_id,
+          type: "new_booking",
+          title: "New Job Available!",
+          message: `${serviceName} ki nayi booking aayi hai - ${format(date, "dd MMM")} ko ${time}. Accept karein!`,
+          booking_id: bookingData.id,
+        }));
+        await supabase.from("notifications").insert(notifications);
+      }
+    }
+  };
+
+  const handlePayRazorpay = async () => {
     if (!isAuthenticated || !userId || !date || !time || !provider || !duration) return;
     setLoading(true);
 
@@ -100,9 +154,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
         }
       );
 
-      if (orderError || !orderData?.order_id) {
-        throw new Error(orderError?.message || "Failed to create order");
-      }
+      if (orderError || !orderData?.order_id) throw new Error(orderError?.message || "Failed to create order");
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) throw new Error("Failed to load payment gateway");
@@ -117,22 +169,10 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
         prefill: {
           name: profile?.display_name || userName || "",
           email: profile?.email || userEmail || "",
-          contact: profile?.phone || "",
+          contact: profile?.phone || customerPhone || "",
         },
         handler: async (response: any) => {
-          await supabase.from("bookings").insert({
-            user_id: userId,
-            service_name: serviceName,
-            provider_name: provider.name,
-            provider_address: provider.address,
-            provider_phone: provider.phone,
-            booking_date: format(date, "yyyy-MM-dd"),
-            booking_time: `${time} (${duration.label})`,
-            payment_id: response.razorpay_payment_id,
-            payment_status: "paid",
-            amount: duration.rate,
-            status: "confirmed",
-          });
+          await saveBooking(response.razorpay_payment_id);
           setStep("success");
           setLoading(false);
           toast({
@@ -140,9 +180,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             description: `${serviceName} with ${provider.name} on ${format(date, "PPP")} at ${time}`,
           });
         },
-        modal: {
-          ondismiss: () => setLoading(false),
-        },
+        modal: { ondismiss: () => setLoading(false) },
       };
 
       const rzp = new window.Razorpay(options);
@@ -153,16 +191,38 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
     }
   };
 
+  const handleCashBooking = async () => {
+    if (!isAuthenticated || !userId || !date || !time || !provider || !duration) return;
+    setLoading(true);
+    try {
+      await saveBooking();
+      setStep("success");
+      toast({
+        title: "🎉 Your service is booked!",
+        description: `Payment: Cash on Service. ${serviceName} on ${format(date!, "PPP")} at ${time}`,
+      });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmPay = () => {
+    if (paymentMethod === "razorpay") handlePayRazorpay();
+    else handleCashBooking();
+  };
+
   if (!provider) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">{provider.name}</DialogTitle>
         </DialogHeader>
 
-        {/* Step: Actions - Contact or Book */}
+        {/* Step: Actions */}
         {step === "actions" && (
           <div className="space-y-3 pt-2">
             <p className="text-sm text-muted-foreground">{provider.address}</p>
@@ -173,19 +233,59 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
               <Button variant="outline" className="flex-1 gap-2" onClick={handleContact}>
                 <Phone className="w-4 h-4" /> Contact
               </Button>
-              <Button
-                className="flex-1 gap-2"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    toast({ title: "Login Required", description: "Please login first to book a service.", variant: "destructive" });
-                    return;
-                  }
-                  setStep("calendar");
-                }}
-              >
+              <Button className="flex-1 gap-2" onClick={() => {
+                if (!isAuthenticated) {
+                  toast({ title: "Login Required", description: "Please login first to book a service.", variant: "destructive" });
+                  return;
+                }
+                setStep("description");
+              }}>
                 <CreditCard className="w-4 h-4" /> Book
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* Step: Description & Customer Details */}
+        {step === "description" && (
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
+                <FileText className="w-3.5 h-3.5" /> Problem Description
+              </label>
+              <Textarea
+                placeholder="Aapki actual problem kya hai? Detail mein likhein taaki provider apna pura toolkit lekar aaye... (e.g. Kitchen sink mein leakage hai, pipe purana ho gaya hai)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Your Address *</label>
+              <Textarea
+                placeholder="Pura address likhein - house number, street, landmark, area..."
+                value={customerAddress}
+                onChange={(e) => setCustomerAddress(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Your Phone Number *</label>
+              <Input
+                placeholder="+91 XXXXX XXXXX"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+              />
+            </div>
+            <Button className="w-full" onClick={() => {
+              if (!customerAddress || !customerPhone) {
+                toast({ title: "Required", description: "Address aur phone number daalein.", variant: "destructive" });
+                return;
+              }
+              setStep("calendar");
+            }}>
+              Continue
+            </Button>
           </div>
         )}
 
@@ -204,10 +304,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={(d) => {
-                    setDate(d);
-                    if (d) setStep("time");
-                  }}
+                  onSelect={(d) => { setDate(d); if (d) setStep("time"); }}
                   disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
                   className="p-3 pointer-events-auto"
                 />
@@ -225,16 +322,8 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             <label className="text-sm font-medium block">Select Time</label>
             <div className="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto">
               {timeSlots.map((slot) => (
-                <Button
-                  key={slot}
-                  variant={time === slot ? "default" : "outline"}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => {
-                    setTime(slot);
-                    setStep("duration");
-                  }}
-                >
+                <Button key={slot} variant={time === slot ? "default" : "outline"} size="sm" className="text-xs"
+                  onClick={() => { setTime(slot); setStep("duration"); }}>
                   {slot}
                 </Button>
               ))}
@@ -242,7 +331,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
           </div>
         )}
 
-        {/* Step: Duration & Pricing */}
+        {/* Step: Duration */}
         {step === "duration" && (
           <div className="space-y-4 pt-2">
             <div className="text-sm text-muted-foreground space-y-1">
@@ -252,19 +341,10 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             <label className="text-sm font-medium block">Select Duration</label>
             <div className="grid grid-cols-2 gap-3">
               {durationOptions.map((opt) => (
-                <button
-                  key={opt.minutes}
-                  onClick={() => {
-                    setDuration(opt);
-                    setStep("confirm");
-                  }}
-                  className={cn(
-                    "border rounded-xl p-3 text-left transition-all hover:border-primary hover:bg-primary/5",
-                    duration?.minutes === opt.minutes
-                      ? "border-primary bg-primary/10"
-                      : "border-border"
-                  )}
-                >
+                <button key={opt.minutes}
+                  onClick={() => { setDuration(opt); setStep("payment-method"); }}
+                  className={cn("border rounded-xl p-3 text-left transition-all hover:border-primary hover:bg-primary/5",
+                    duration?.minutes === opt.minutes ? "border-primary bg-primary/10" : "border-border")}>
                   <p className="font-semibold text-sm text-foreground">{opt.label}</p>
                   <p className="text-primary font-bold text-lg">₹{opt.rate}</p>
                 </button>
@@ -273,22 +353,53 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
           </div>
         )}
 
-        {/* Step: Confirm & Pay */}
+        {/* Step: Payment Method */}
+        {step === "payment-method" && duration && (
+          <div className="space-y-4 pt-2">
+            <label className="text-sm font-medium block">Payment Method</label>
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={() => { setPaymentMethod("razorpay"); setStep("confirm"); }}
+                className={cn("border rounded-xl p-4 text-left transition-all flex items-center gap-3 hover:border-primary",
+                  paymentMethod === "razorpay" ? "border-primary bg-primary/10" : "border-border")}>
+                <CreditCard className="w-6 h-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-foreground">Pay Online (Razorpay)</p>
+                  <p className="text-xs text-muted-foreground">UPI, Card, Net Banking se abhi pay karein</p>
+                </div>
+              </button>
+              <button
+                onClick={() => { setPaymentMethod("cash"); setStep("confirm"); }}
+                className={cn("border rounded-xl p-4 text-left transition-all flex items-center gap-3 hover:border-primary",
+                  paymentMethod === "cash" ? "border-primary bg-primary/10" : "border-border")}>
+                <Banknote className="w-6 h-6 text-green-600" />
+                <div>
+                  <p className="font-semibold text-foreground">Cash on Service</p>
+                  <p className="text-xs text-muted-foreground">Service complete hone ke baad ghar par pay karein</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Confirm */}
         {step === "confirm" && duration && (
           <div className="space-y-4 pt-2">
             <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
               <p><span className="font-medium">Service:</span> {serviceName}</p>
               <p><span className="font-medium">Provider:</span> {provider.name}</p>
-              <p><span className="font-medium">Phone:</span> {provider.phone}</p>
               <p><span className="font-medium">Date:</span> {date && format(date, "PPP")}</p>
-              <p><span className="font-medium">Time:</span> {time}</p>
-              <p><span className="font-medium">Duration:</span> {duration.label}</p>
+              <p><span className="font-medium">Time:</span> {time} ({duration.label})</p>
+              <p><span className="font-medium">Payment:</span> {paymentMethod === "razorpay" ? "Online (Razorpay)" : "Cash on Service"}</p>
+              {description && <p><span className="font-medium">Problem:</span> {description}</p>}
+              <p><span className="font-medium">Address:</span> {customerAddress}</p>
+              <p><span className="font-medium">Phone:</span> {customerPhone}</p>
               <div className="border-t border-border pt-2 mt-2">
                 <p className="text-lg font-bold text-primary">Total: ₹{duration.rate}</p>
               </div>
             </div>
-            <Button className="w-full text-base font-semibold gap-2" size="lg" onClick={handlePay} disabled={loading}>
-              {loading ? "Processing..." : `Pay ₹${duration.rate}`}
+            <Button className="w-full text-base font-semibold gap-2" size="lg" onClick={handleConfirmPay} disabled={loading}>
+              {loading ? "Processing..." : paymentMethod === "razorpay" ? `Pay ₹${duration.rate}` : `Confirm Booking (₹${duration.rate} Cash)`}
             </Button>
           </div>
         )}
@@ -301,7 +412,12 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
             <p className="text-sm text-muted-foreground">
               {serviceName} with {provider.name} on {date && format(date, "PPP")} at {time}
             </p>
-            <p className="text-xs text-muted-foreground">Check your Dashboard for booking details</p>
+            {paymentMethod === "cash" && (
+              <p className="text-sm text-muted-foreground bg-muted rounded-lg p-3">
+                💰 Cash on Service: Service complete hone ke baad ₹{duration?.rate} pay karein
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">Service provider ko notify kar diya gaya hai</p>
             <Button onClick={() => handleClose(false)}>Done</Button>
           </div>
         )}
