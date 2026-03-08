@@ -270,6 +270,7 @@ const ProviderDashboard = () => {
             {earnings > 0 && (
               <EarningsAnalytics bookings={bookings} title="My Earnings & Services" />
             )}
+            {bookings.map((b) => (
               <div key={b.id} className="border border-border rounded-xl p-5 bg-card space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h3 className="font-semibold text-foreground text-base">{b.service_name}</h3>
