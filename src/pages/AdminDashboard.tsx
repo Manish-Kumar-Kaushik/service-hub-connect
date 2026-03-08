@@ -355,6 +355,7 @@ const AdminDashboard = () => {
               {/* Unified Earnings & Services Analytics */}
               <EarningsAnalytics bookings={bookings} title="Earnings & Services Analytics" />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="border border-border rounded-xl p-6 bg-card">
                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-primary" /> Booking Status Breakdown
