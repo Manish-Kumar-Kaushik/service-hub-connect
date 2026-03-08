@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, Wrench } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const serviceImages = [
   { src: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=500&fit=crop", alt: "Home cleaning" },
@@ -19,6 +22,7 @@ const rotatingTexts = ["Home Service", "Health Checkup", "Salon & Spa", "Educati
 
 const HeroSection = () => {
   const [textIndex, setTextIndex] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,7 +55,7 @@ const HeroSection = () => {
         </h2>
 
         {/* Dots indicator */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-center gap-2 mb-6">
           {rotatingTexts.map((_, i) => (
             <div
               key={i}
@@ -62,9 +66,19 @@ const HeroSection = () => {
           ))}
         </div>
 
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground text-lg mb-8">
           Explore categories to find the best services near you
         </p>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button size="lg" className="gap-2 px-8 text-base" onClick={() => navigate("/categories")}>
+            Browse Services <ArrowRight className="w-5 h-5" />
+          </Button>
+          <Button size="lg" variant="outline" className="gap-2 px-8 text-base" onClick={() => navigate("/provider-signup")}>
+            <Wrench className="w-5 h-5" /> Register as Provider
+          </Button>
+        </div>
       </div>
     </section>
   );
