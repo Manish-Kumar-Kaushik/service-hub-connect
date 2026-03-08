@@ -109,7 +109,7 @@ const AdminDashboard = () => {
   };
 
   const totalRevenue = bookings
-    .filter((b) => b.payment_status === "paid")
+    .filter((b) => b.status === "completed" || b.payment_status === "paid")
     .reduce((sum, b) => sum + (b.amount || 0), 0);
 
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
