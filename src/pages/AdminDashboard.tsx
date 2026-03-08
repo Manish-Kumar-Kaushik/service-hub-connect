@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp } from "lucide-react";
+import { ArrowLeft, Shield, Users, Wrench, Calendar, DollarSign, BarChart3, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp, Download } from "lucide-react";
 import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -140,6 +140,34 @@ const AdminDashboard = () => {
   }, [bookings]);
 
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
+  const downloadCSV = (filename: string, headers: string[], rows: string[][]) => {
+    const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${(c ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportBookingsCSV = () => {
+    const headers = ["Service", "Provider", "Date", "Time", "Status", "Payment Method", "Payment Status", "Amount"];
+    const rows = bookings.map((b) => [
+      b.service_name, b.provider_name, b.booking_date, b.booking_time,
+      b.status, b.payment_method || "N/A", b.payment_status || "pending", String(b.amount || 0),
+    ]);
+    downloadCSV("bookings_export.csv", headers, rows);
+    toast({ title: "✅ Bookings CSV downloaded!" });
+  };
+
+  const exportRevenueCSV = () => {
+    const headers = ["Provider", "Completed Jobs", "Total Revenue (₹)"];
+    const rows = providerEarnings.map((p) => [p.name, String(p.jobs), String(p.revenue)]);
+    rows.push(["TOTAL", String(providerEarnings.reduce((s, p) => s + p.jobs, 0)), String(totalRevenue)]);
+    downloadCSV("revenue_export.csv", headers, rows);
+    toast({ title: "✅ Revenue CSV downloaded!" });
+  };
 
   if (checking) {
     return (
@@ -266,6 +294,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-4 mt-4">
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" className="gap-2" onClick={exportBookingsCSV} disabled={bookings.length === 0}>
+                <Download className="w-4 h-4" /> Export Bookings CSV
+              </Button>
+            </div>
             {bookings.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No bookings yet.</p>
             ) : (
@@ -312,6 +345,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-4">
+            <div className="flex justify-end mb-4">
+              <Button variant="outline" size="sm" className="gap-2" onClick={exportRevenueCSV} disabled={providerEarnings.length === 0}>
+                <Download className="w-4 h-4" /> Export Revenue CSV
+              </Button>
+            </div>
             <div className="grid grid-cols-1 gap-6">
               {/* Date-wise Revenue Chart */}
               <div className="border border-border rounded-xl p-6 bg-card">
