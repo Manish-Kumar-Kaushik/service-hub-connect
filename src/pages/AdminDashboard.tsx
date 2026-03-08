@@ -113,6 +113,20 @@ const AdminDashboard = () => {
     .filter((b) => b.status === "completed" || b.payment_status === "paid")
     .reduce((sum, b) => sum + (b.amount || 0), 0);
 
+  const revenueChartData = useMemo(() => {
+    const last30 = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
+    return last30.map((day) => {
+      const dayBookings = bookings.filter(
+        (b) => (b.status === "completed" || b.payment_status === "paid") && isSameDay(new Date(b.created_at), day)
+      );
+      return {
+        date: format(day, "dd MMM"),
+        revenue: dayBookings.reduce((sum, b) => sum + (b.amount || 0), 0),
+        bookings: bookings.filter((b) => isSameDay(new Date(b.created_at), day)).length,
+      };
+    });
+  }, [bookings]);
+
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
 
   if (checking) {
