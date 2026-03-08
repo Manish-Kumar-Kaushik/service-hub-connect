@@ -101,6 +101,17 @@ const ProviderDashboard = () => {
     setLoading(false);
   };
 
+  const earningsChartData = useMemo(() => {
+    const last30 = eachDayOfInterval({ start: subDays(new Date(), 29), end: new Date() });
+    const paidBookings = bookings.filter((b) => b.provider_status === "accepted" && b.payment_status === "paid");
+    return last30.map((day) => ({
+      date: format(day, "dd MMM"),
+      earnings: paidBookings
+        .filter((b) => isSameDay(new Date(b.created_at), day))
+        .reduce((sum, b) => sum + (b.amount || 0), 0),
+    }));
+  }, [bookings]);
+
   const handleAccept = async (booking: ProviderBooking) => {
     const { error } = await supabase
       .from("bookings")
