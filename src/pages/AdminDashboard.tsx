@@ -127,6 +127,18 @@ const AdminDashboard = () => {
     });
   }, [bookings]);
 
+  const providerEarnings = useMemo(() => {
+    const paidBookings = bookings.filter((b) => b.status === "completed" || b.payment_status === "paid");
+    const map: Record<string, { name: string; revenue: number; jobs: number }> = {};
+    paidBookings.forEach((b) => {
+      const key = b.provider_name;
+      if (!map[key]) map[key] = { name: key, revenue: 0, jobs: 0 };
+      map[key].revenue += b.amount || 0;
+      map[key].jobs += 1;
+    });
+    return Object.values(map).sort((a, b) => b.revenue - a.revenue);
+  }, [bookings]);
+
   const pendingProviders = providers.filter((p) => p.verification_status === "pending");
 
   if (checking) {
