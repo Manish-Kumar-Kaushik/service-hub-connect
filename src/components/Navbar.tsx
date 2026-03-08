@@ -90,6 +90,9 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate("/provider-dashboard")} className="gap-2 cursor-pointer">
                     <Wrench className="w-4 h-4" /> Provider Dashboard
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/admin")} className="gap-2 cursor-pointer">
+                    <Shield className="w-4 h-4" /> Admin Panel
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/account")} className="gap-2 cursor-pointer">
                     <Settings className="w-4 h-4" /> Account
                   </DropdownMenuItem>
