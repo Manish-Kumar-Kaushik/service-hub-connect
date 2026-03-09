@@ -188,9 +188,6 @@ const Navbar = () => {
                   <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
                     <User className="w-4 h-4" /> Login
                   </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => { navigate("/admin-login"); setMobileOpen(false); }}>
-                    <Shield className="w-3.5 h-3.5" /> Admin
-                  </Button>
                 </div>
               )
             )}
