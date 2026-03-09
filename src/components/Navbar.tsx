@@ -12,9 +12,44 @@ const ADMIN_SECRET_VALUE = "admin123";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminUnlocked, setAdminUnlocked] = useState(() => localStorage.getItem(ADMIN_UNLOCK_KEY) === "true");
   const { isAuthenticated, isLoading, userName, userAvatar, role, isAdmin, isProvider, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Secret URL: /?unlock=admin123 to enable, /?unlock=remove to disable
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const val = params.get(ADMIN_SECRET_PARAM);
+    if (val === ADMIN_SECRET_VALUE) {
+      localStorage.setItem(ADMIN_UNLOCK_KEY, "true");
+      setAdminUnlocked(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (val === "remove") {
+      localStorage.removeItem(ADMIN_UNLOCK_KEY);
+      setAdminUnlocked(false);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  // Secret shortcut: Ctrl+Shift+A to toggle
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+        e.preventDefault();
+        setAdminUnlocked((prev) => {
+          const next = !prev;
+          if (next) localStorage.setItem(ADMIN_UNLOCK_KEY, "true");
+          else localStorage.removeItem(ADMIN_UNLOCK_KEY);
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  const showAdminAccess = adminUnlocked || isAdmin;
 
   const navLinks = [
     { label: "Home", href: "/" },
