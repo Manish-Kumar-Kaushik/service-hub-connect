@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, User, LayoutDashboard, Settings, LogOut, Wrench, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
+
+const ADMIN_UNLOCK_KEY = "admin_unlock";
+const ADMIN_SECRET_PARAM = "unlock";
+const ADMIN_SECRET_VALUE = "admin123";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
