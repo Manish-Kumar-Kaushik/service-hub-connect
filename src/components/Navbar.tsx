@@ -32,10 +32,10 @@ const Navbar = () => {
     }
   }, []);
 
-  // Secret shortcut: Ctrl+Shift+A to toggle
+  // Secret shortcut: Cmd+Shift+A (Mac) or Ctrl+Shift+A (Windows) to toggle
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "A") {
         e.preventDefault();
         setAdminUnlocked((prev) => {
           const next = !prev;
