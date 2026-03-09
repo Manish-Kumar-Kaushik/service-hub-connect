@@ -135,9 +135,6 @@ const Navbar = () => {
                 <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/login")}>
                   <User className="w-4 h-4" /> Login
                 </Button>
-                <Button variant="ghost" size="sm" className="gap-2 text-xs text-muted-foreground" onClick={() => navigate("/admin-login")}>
-                  <Shield className="w-3.5 h-3.5" /> Admin
-                </Button>
               </div>
             )}
           </div>
