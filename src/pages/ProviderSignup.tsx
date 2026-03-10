@@ -58,7 +58,7 @@ const ProviderSignup = () => {
     fetchProviders();
   }, [success]); // refetch after new registration
 
-  const handleDummyLogin = (provider: typeof DUMMY_PROVIDERS[0]) => {
+  const handleDummyLogin = (provider: DBProvider) => {
     localStorage.setItem("dummy_provider_id", provider.user_id);
     localStorage.setItem("dummy_provider_name", provider.name);
     setDummyLoggedIn(true);
