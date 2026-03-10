@@ -10,11 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { serviceCategories } from "@/components/sidebar/SidebarData";
 
-// Dummy providers for testing
-const DUMMY_PROVIDERS = [
-  { user_id: "TEST_PROVIDER_001", name: "Rajesh Electricals", phone: "9876543210" },
-  { user_id: "TEST_PROVIDER_002", name: "Ravi Cleaning", phone: "9988776655" },
-];
+interface DBProvider {
+  user_id: string;
+  name: string;
+  phone: string;
+  category: string | null;
+  avatar_url: string | null;
+}
 
 const ProviderSignup = () => {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ const ProviderSignup = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [dbProviders, setDbProviders] = useState<DBProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
 
   // Dummy login state
   const [dummyLoggedIn, setDummyLoggedIn] = useState(false);
@@ -39,7 +43,22 @@ const ProviderSignup = () => {
     }
   }, []);
 
-  const handleDummyLogin = (provider: typeof DUMMY_PROVIDERS[0]) => {
+  // Fetch all registered providers from DB
+  useEffect(() => {
+    const fetchProviders = async () => {
+      setProvidersLoading(true);
+      const { data } = await supabase
+        .from("service_providers")
+        .select("user_id, name, phone, category, avatar_url")
+        .eq("is_active", true)
+        .order("name");
+      setDbProviders((data as DBProvider[]) || []);
+      setProvidersLoading(false);
+    };
+    fetchProviders();
+  }, [success]); // refetch after new registration
+
+  const handleDummyLogin = (provider: DBProvider) => {
     localStorage.setItem("dummy_provider_id", provider.user_id);
     localStorage.setItem("dummy_provider_name", provider.name);
     setDummyLoggedIn(true);
@@ -211,26 +230,43 @@ const ProviderSignup = () => {
                         <h2 className="text-xl font-bold text-foreground">Welcome Back, Provider!</h2>
                         <p className="text-sm text-muted-foreground mt-1">Select your account to login</p>
                       </div>
-                      <div className="space-y-3">
-                        {DUMMY_PROVIDERS.map((p) => (
-                          <button
-                            key={p.user_id}
-                            onClick={() => handleDummyLogin(p)}
-                            className="w-full flex items-center gap-4 border border-border rounded-xl p-4 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
-                          >
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Wrench className="w-5 h-5 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-foreground">{p.name}</p>
-                              <p className="text-sm text-muted-foreground">{p.phone}</p>
-                            </div>
-                            <LogIn className="w-5 h-5 text-muted-foreground" />
-                          </button>
-                        ))}
-                      </div>
+                      {providersLoading ? (
+                        <div className="text-center py-6">
+                          <p className="text-sm text-muted-foreground">Loading providers...</p>
+                        </div>
+                      ) : dbProviders.length === 0 ? (
+                        <div className="text-center py-6">
+                          <p className="text-sm text-muted-foreground">No registered providers yet. Switch to <strong>New Registration</strong> tab to create one.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
+                          {dbProviders.map((p) => (
+                            <button
+                              key={p.user_id}
+                              onClick={() => handleDummyLogin(p)}
+                              className="w-full flex items-center gap-4 border border-border rounded-xl p-4 hover:border-primary/50 hover:bg-primary/5 transition-all text-left"
+                            >
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                                {p.avatar_url ? (
+                                  <img src={p.avatar_url} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <Wrench className="w-5 h-5 text-primary" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-foreground">{p.name}</p>
+                                <p className="text-sm text-muted-foreground">{p.phone}</p>
+                                {p.category && (
+                                  <p className="text-xs text-primary/70">{p.category}</p>
+                                )}
+                              </div>
+                              <LogIn className="w-5 h-5 text-muted-foreground" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-xs text-center text-muted-foreground pt-2">
-                        ⚠️ Dummy login for testing only. Real auth will be added later.
+                        Select your registered account to access your dashboard.
                       </p>
                     </div>
                   ) : (
