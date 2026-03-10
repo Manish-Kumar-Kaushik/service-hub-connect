@@ -10,11 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { serviceCategories } from "@/components/sidebar/SidebarData";
 
-// Dummy providers for testing
-const DUMMY_PROVIDERS = [
-  { user_id: "TEST_PROVIDER_001", name: "Rajesh Electricals", phone: "9876543210" },
-  { user_id: "TEST_PROVIDER_002", name: "Ravi Cleaning", phone: "9988776655" },
-];
+interface DBProvider {
+  user_id: string;
+  name: string;
+  phone: string;
+  category: string | null;
+  avatar_url: string | null;
+}
 
 const ProviderSignup = () => {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ const ProviderSignup = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [dbProviders, setDbProviders] = useState<DBProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
 
   // Dummy login state
   const [dummyLoggedIn, setDummyLoggedIn] = useState(false);
