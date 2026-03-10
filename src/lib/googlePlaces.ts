@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const API_KEY = "AIzaSyDSS1tC9xS_uX2nw-kBqqpuRIYnHkj7y1A";
 
 export interface PlaceResult {
@@ -12,83 +11,43 @@ export interface PlaceResult {
   address: string;
 }
 
-let mapDiv: HTMLDivElement | null = null;
-let service: any = null;
-let mapsLoaded = false;
-let loadingPromise: Promise<void> | null = null;
-
-function loadGoogleMapsScript(): Promise<void> {
-  if (mapsLoaded) return Promise.resolve();
-  if (loadingPromise) return loadingPromise;
-
-  loadingPromise = new Promise((resolve, reject) => {
-    if ((window as any).google?.maps?.places) {
-      mapsLoaded = true;
-      resolve();
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      mapsLoaded = true;
-      resolve();
-    };
-    script.onerror = () => reject(new Error("Failed to load Google Maps"));
-    document.head.appendChild(script);
-  });
-
-  return loadingPromise;
-}
-
-function getService(): any {
-  if (service) return service;
-  if (!mapDiv) {
-    mapDiv = document.createElement("div");
-    mapDiv.style.display = "none";
-    document.body.appendChild(mapDiv);
-  }
-  const g = (window as any).google;
-  service = new g.maps.places.PlacesService(mapDiv);
-  return service;
+function getPhotoUrl(photoReference: string, maxWidth = 400): string {
+  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${API_KEY}`;
 }
 
 export async function searchPlaces(query: string, maxResults = 16): Promise<PlaceResult[]> {
-  await loadGoogleMapsScript();
-  const svc = getService();
-  const g = (window as any).google;
+  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${API_KEY}`;
 
-  return new Promise((resolve, reject) => {
-    svc.textSearch({ query }, (results: any[], status: string) => {
-      if (status !== g.maps.places.PlacesServiceStatus.OK || !results) {
-        if (status === g.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          resolve([]);
-          return;
-        }
-        reject(new Error(`Places API error: ${status}`));
-        return;
-      }
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Places API error: ${response.status}`);
+  }
 
-      const places: PlaceResult[] = results.slice(0, maxResults).map((place: any) => {
-        let photoUrl: string | null = null;
-        if (place.photos && place.photos.length > 0) {
-          photoUrl = place.photos[0].getUrl({ maxWidth: 400, maxHeight: 300 });
-        }
+  const data = await response.json();
 
-        return {
-          id: place.place_id || Math.random().toString(36),
-          name: place.name || "Unknown",
-          rating: place.rating || 0,
-          userRatingsTotal: place.user_ratings_total || 0,
-          photoUrl,
-          openNow: place.opening_hours?.isOpen?.() ?? null,
-          openingHours: place.opening_hours?.weekday_text || [],
-          address: place.formatted_address || "",
-        };
-      });
+  if (data.status === "ZERO_RESULTS" || !data.results) {
+    return [];
+  }
 
-      resolve(places);
-    });
+  if (data.status !== "OK") {
+    throw new Error(`Places API error: ${data.status} - ${data.error_message || ""}`);
+  }
+
+  return data.results.slice(0, maxResults).map((place: any) => {
+    let photoUrl: string | null = null;
+    if (place.photos && place.photos.length > 0) {
+      photoUrl = getPhotoUrl(place.photos[0].photo_reference);
+    }
+
+    return {
+      id: place.place_id || Math.random().toString(36),
+      name: place.name || "Unknown",
+      rating: place.rating || 0,
+      userRatingsTotal: place.user_ratings_total || 0,
+      photoUrl,
+      openNow: place.opening_hours?.open_now ?? null,
+      openingHours: [],
+      address: place.formatted_address || "",
+    };
   });
 }
