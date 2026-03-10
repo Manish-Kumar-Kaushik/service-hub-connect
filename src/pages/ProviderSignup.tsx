@@ -266,7 +266,7 @@ const ProviderSignup = () => {
                         </div>
                       )}
                       <p className="text-xs text-center text-muted-foreground pt-2">
-                        ⚠️ Dummy login for testing only. Real auth will be added later.
+                        Select your registered account to access your dashboard.
                       </p>
                     </div>
                   ) : (
