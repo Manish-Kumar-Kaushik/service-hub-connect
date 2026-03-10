@@ -157,32 +157,55 @@ const ServiceCards = ({ selectedService }: ServiceCardsProps) => {
         .eq("is_active", true)
         .contains("services_offered", [selectedService.item.label]);
 
+      // Fetch average ratings from reviews for registered providers
+      const providerIds = (dbProviders || []).map((p) => p.id);
+      let ratingsMap: Record<string, { avg: number; count: number }> = {};
+      if (providerIds.length > 0) {
+        const { data: reviews } = await supabase
+          .from("reviews")
+          .select("provider_id, rating")
+          .in("provider_id", providerIds);
+        if (reviews) {
+          const grouped: Record<string, number[]> = {};
+          reviews.forEach((r) => {
+            if (!grouped[r.provider_id]) grouped[r.provider_id] = [];
+            grouped[r.provider_id].push(r.rating);
+          });
+          Object.entries(grouped).forEach(([pid, ratings]) => {
+            ratingsMap[pid] = {
+              avg: ratings.reduce((a, b) => a + b, 0) / ratings.length,
+              count: ratings.length,
+            };
+          });
+        }
+      }
+
       const registeredCards: CardProvider[] = (dbProviders || []).map((p) => ({
         id: p.id,
         name: p.name,
         phone: p.phone,
-        rating: 4.5 + Math.random() * 0.5, // Default rating for new providers
-        reviewCount: Math.floor(Math.random() * 20) + 1,
+        rating: ratingsMap[p.id]?.avg ?? 4.5,
+        reviewCount: ratingsMap[p.id]?.count ?? 0,
         address: p.address || "Bhilai, Chhattisgarh",
         imageUrl: p.avatar_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
         openNow: true,
         isRegistered: true,
       }));
 
-      // 2. Fetch from Google Places / mock data
+      // 2. Fetch from Google Places
       const query = `${selectedService.item.label} in Bhilai Durg Chhattisgarh`;
       let otherCards: CardProvider[] = [];
 
       try {
         const places = await searchPlaces(query, 12);
-        if (places.length > 0) {
-          otherCards = places.map(placeToCardProvider);
-        } else {
-          const data = generateProviders(selectedService.item.label, selectedService.categoryTitle, 12);
-          otherCards = data.map(mockToCardProvider);
-        }
-      } catch {
-        const data = generateProviders(selectedService.item.label, selectedService.categoryTitle, 12);
+        otherCards = places.map(placeToCardProvider);
+      } catch (err) {
+        console.error("Google Places fetch failed:", err);
+      }
+
+      // If no Google results, use mock as last resort
+      if (otherCards.length === 0) {
+        const data = generateProviders(selectedService.item.label, selectedService.categoryTitle, 8);
         otherCards = data.map(mockToCardProvider);
       }
 
