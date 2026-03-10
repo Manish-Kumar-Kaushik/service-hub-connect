@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const API_KEY = "AIzaSyBojjqHwtrfSIAhovEzGC0bqNrdhwqZfZo";
+const API_KEY = "AIzaSyDSS1tC9xS_uX2nw-kBqqpuRIYnHkj7y1A";
 
 export interface PlaceResult {
   id: string;
