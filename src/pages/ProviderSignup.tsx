@@ -43,6 +43,21 @@ const ProviderSignup = () => {
     }
   }, []);
 
+  // Fetch all registered providers from DB
+  useEffect(() => {
+    const fetchProviders = async () => {
+      setProvidersLoading(true);
+      const { data } = await supabase
+        .from("service_providers")
+        .select("user_id, name, phone, category, avatar_url")
+        .eq("is_active", true)
+        .order("name");
+      setDbProviders((data as DBProvider[]) || []);
+      setProvidersLoading(false);
+    };
+    fetchProviders();
+  }, [success]); // refetch after new registration
+
   const handleDummyLogin = (provider: typeof DUMMY_PROVIDERS[0]) => {
     localStorage.setItem("dummy_provider_id", provider.user_id);
     localStorage.setItem("dummy_provider_name", provider.name);
