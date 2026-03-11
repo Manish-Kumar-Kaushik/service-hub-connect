@@ -15,6 +15,7 @@ import ProviderDashboard from "./pages/ProviderDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
+import ProviderDetails from "./pages/ProviderDetails";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/provider-dashboard" element={<ProviderDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/categories" element={<Categories />} />
+              <Route path="/provider/:id" element={<ProviderDetails />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
