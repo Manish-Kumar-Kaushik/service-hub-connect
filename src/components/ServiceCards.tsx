@@ -150,6 +150,7 @@ const ProviderCard = ({
 };
 
 const ServiceCards = ({ selectedService }: ServiceCardsProps) => {
+  const navigate = useNavigate();
   const [providers, setProviders] = useState<CardProvider[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<CardProvider | null>(null);
