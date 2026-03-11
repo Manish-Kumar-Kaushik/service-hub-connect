@@ -252,6 +252,7 @@ const ServiceCards = ({ selectedService }: ServiceCardsProps) => {
                   setSelectedProvider(provider);
                   setDialogOpen(true);
                 }}
+                onDetails={() => navigate(`/provider/${provider.id}`)}
               />
             ))}
       </div>
