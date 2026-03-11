@@ -78,10 +78,12 @@ const ProviderCard = ({
   provider,
   index,
   onSelect,
+  onDetails,
 }: {
   provider: CardProvider;
   index: number;
   onSelect: () => void;
+  onDetails: () => void;
 }) => {
   const [visible, setVisible] = useState(false);
 
@@ -125,16 +127,23 @@ const ProviderCard = ({
           {provider.name}
         </h3>
         <StarRating rating={provider.rating} count={provider.reviewCount} />
-        {provider.phone !== "N/A" && (
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Phone className="w-3 h-3 shrink-0" />
-            {provider.phone}
-          </p>
-        )}
         <p className="text-xs text-muted-foreground line-clamp-1 flex items-center gap-1">
           <MapPin className="w-3 h-3 shrink-0" />
           {provider.address}
         </p>
+        {provider.isRegistered && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-1 gap-1.5 text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDetails();
+            }}
+          >
+            <Info className="w-3.5 h-3.5" /> Details
+          </Button>
+        )}
       </div>
     </div>
   );
