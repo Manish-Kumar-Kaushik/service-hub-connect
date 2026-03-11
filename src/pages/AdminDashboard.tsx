@@ -283,13 +283,23 @@ const AdminDashboard = () => {
                     <p>Experience: <span className="text-foreground">{p.experience_years || 0} years</span></p>
                     <p>Registered: <span className="text-foreground">{format(new Date(p.created_at), "dd MMM yyyy")}</span></p>
                   </div>
-                  {(!p.verification_status || p.verification_status === "pending") && (
+                  {/* Show approve/reject for pending AND rejected (so admin can re-approve) */}
+                  {(!p.verification_status || p.verification_status === "pending" || p.verification_status === "rejected") && (
                     <div className="flex gap-3 pt-2">
                       <Button size="sm" className="gap-1" onClick={() => handleVerifyProvider(p.id, true)}>
                         <CheckCircle className="w-3.5 h-3.5" /> Approve
                       </Button>
+                      {p.verification_status !== "rejected" && (
+                        <Button size="sm" variant="outline" className="gap-1 text-destructive" onClick={() => handleVerifyProvider(p.id, false)}>
+                          <XCircle className="w-3.5 h-3.5" /> Reject
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {p.verification_status === "approved" && (
+                    <div className="flex gap-3 pt-2">
                       <Button size="sm" variant="outline" className="gap-1 text-destructive" onClick={() => handleVerifyProvider(p.id, false)}>
-                        <XCircle className="w-3.5 h-3.5" /> Reject
+                        <XCircle className="w-3.5 h-3.5" /> Reject / Delist
                       </Button>
                     </div>
                   )}
