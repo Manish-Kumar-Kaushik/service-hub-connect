@@ -15,6 +15,7 @@ import ProviderDashboard from "./pages/ProviderDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
+import ProviderDetails from "./pages/ProviderDetails";
 
 const queryClient = new QueryClient();
 
