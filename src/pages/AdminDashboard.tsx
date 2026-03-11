@@ -99,14 +99,31 @@ const AdminDashboard = () => {
   };
 
   const handleVerifyProvider = async (id: string, approve: boolean) => {
+    // Find the provider to get user_id
+    const provider = providers.find((p) => p.id === id);
+    
     await supabase
       .from("service_providers")
       .update({
         is_verified: approve,
+        is_active: approve,
         verification_status: approve ? "approved" : "rejected",
       })
       .eq("id", id);
-    toast({ title: approve ? "Provider Approved" : "Provider Rejected" });
+
+    // Send notification to provider
+    if (provider) {
+      await supabase.from("notifications").insert({
+        user_id: provider.user_id,
+        type: approve ? "verification_approved" : "verification_rejected",
+        title: approve ? "✅ Account Verified!" : "❌ Account Rejected",
+        message: approve
+          ? "Congratulations! Aapka account verify ho gaya hai. Ab aap customers se bookings receive kar sakte ho."
+          : "Aapka account verification reject ho gaya hai. Kripya apni details check karke dobara register karo ya Admin se contact karo.",
+      });
+    }
+
+    toast({ title: approve ? "✅ Provider Approved & Activated" : "❌ Provider Rejected" });
     fetchAll();
   };
 
