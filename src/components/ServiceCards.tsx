@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, MapPin, Phone, BadgeCheck } from "lucide-react";
+import { Star, MapPin, BadgeCheck, Info } from "lucide-react";
 import { searchPlaces, type PlaceResult } from "@/lib/googlePlaces";
 import { generateProviders, type ServiceProvider } from "@/lib/mockIndianData";
 import { supabase } from "@/integrations/supabase/client";
 import type { ServiceItem } from "@/components/sidebar/SidebarData";
 import BookingDialog from "@/components/BookingDialog";
+import { Button } from "@/components/ui/button";
 
 interface ServiceCardsProps {
   selectedService: { item: ServiceItem; categoryTitle: string } | null;
