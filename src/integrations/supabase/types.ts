@@ -271,8 +271,10 @@ export type Database = {
       }
       service_providers: {
         Row: {
+          aadhaar_number: string | null
           address: string | null
           avatar_url: string | null
+          bank_account_number: string | null
           category: string | null
           created_at: string
           email: string | null
@@ -281,15 +283,20 @@ export type Database = {
           is_active: boolean | null
           is_verified: boolean | null
           name: string
+          password_hash: string | null
           phone: string
           services_offered: string[] | null
+          shop_name: string | null
           updated_at: string
+          upi_id: string | null
           user_id: string
           verification_status: string | null
         }
         Insert: {
+          aadhaar_number?: string | null
           address?: string | null
           avatar_url?: string | null
+          bank_account_number?: string | null
           category?: string | null
           created_at?: string
           email?: string | null
@@ -298,15 +305,20 @@ export type Database = {
           is_active?: boolean | null
           is_verified?: boolean | null
           name: string
+          password_hash?: string | null
           phone: string
           services_offered?: string[] | null
+          shop_name?: string | null
           updated_at?: string
+          upi_id?: string | null
           user_id: string
           verification_status?: string | null
         }
         Update: {
+          aadhaar_number?: string | null
           address?: string | null
           avatar_url?: string | null
+          bank_account_number?: string | null
           category?: string | null
           created_at?: string
           email?: string | null
@@ -315,9 +327,12 @@ export type Database = {
           is_active?: boolean | null
           is_verified?: boolean | null
           name?: string
+          password_hash?: string | null
           phone?: string
           services_offered?: string[] | null
+          shop_name?: string | null
           updated_at?: string
+          upi_id?: string | null
           user_id?: string
           verification_status?: string | null
         }
