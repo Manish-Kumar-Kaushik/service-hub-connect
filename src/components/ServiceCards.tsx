@@ -266,6 +266,7 @@ const ServiceCards = ({ selectedService }: ServiceCardsProps) => {
       <BookingDialog
         provider={selectedProvider}
         serviceName={selectedService.item.label}
+        serviceMode={selectedService.item.serviceMode}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
