@@ -243,7 +243,12 @@ const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open,
                   toast({ title: "Login Required", description: "Please login first to book a service.", variant: "destructive" });
                   return;
                 }
-                setStep("description");
+                if (serviceMode === "both") {
+                  setStep("visit-mode");
+                } else {
+                  setVisitMode("home_visit");
+                  setStep("description");
+                }
               }}>
                 <CreditCard className="w-4 h-4" /> Book
               </Button>
