@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Phone, CreditCard, PartyPopper, Banknote, FileText } from "lucide-react";
+import { CalendarIcon, Phone, CreditCard, PartyPopper, Banknote, FileText, Home, Store } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { CardProvider } from "@/components/ServiceCards";
+import type { ServiceMode } from "@/components/sidebar/SidebarData";
 
 const timeSlots = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM",
@@ -33,11 +34,12 @@ const durationOptions = [
 interface BookingDialogProps {
   provider: CardProvider | null;
   serviceName: string;
+  serviceMode?: ServiceMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "actions" | "description" | "calendar" | "time" | "duration" | "payment-method" | "confirm" | "success";
+type Step = "actions" | "visit-mode" | "description" | "calendar" | "time" | "duration" | "payment-method" | "confirm" | "success";
 
 declare global {
   interface Window {
@@ -45,7 +47,7 @@ declare global {
   }
 }
 
-const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDialogProps) => {
+const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open, onOpenChange }: BookingDialogProps) => {
   const [step, setStep] = useState<Step>("actions");
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("");
@@ -54,6 +56,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cash">("razorpay");
+  const [visitMode, setVisitMode] = useState<"home_visit" | "shop_visit">("home_visit");
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, userId, userName, userEmail, profile } = useAuth();
   const { toast } = useToast();
@@ -67,6 +70,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
     setCustomerAddress("");
     setCustomerPhone("");
     setPaymentMethod("razorpay");
+    setVisitMode("home_visit");
     setLoading(false);
   };
 
@@ -239,10 +243,43 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
                   toast({ title: "Login Required", description: "Please login first to book a service.", variant: "destructive" });
                   return;
                 }
-                setStep("description");
+                if (serviceMode === "both") {
+                  setStep("visit-mode");
+                } else {
+                  setVisitMode("home_visit");
+                  setStep("description");
+                }
               }}>
                 <CreditCard className="w-4 h-4" /> Book
               </Button>
+            </div>
+          </div>
+        )}
+        {/* Step: Visit Mode (Home Visit or Shop Visit) */}
+        {step === "visit-mode" && (
+          <div className="space-y-4 pt-2">
+            <label className="text-sm font-medium block">How would you like this service?</label>
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={() => { setVisitMode("home_visit"); setStep("description"); }}
+                className={cn("border rounded-xl p-4 text-left transition-all flex items-center gap-3 hover:border-primary",
+                  visitMode === "home_visit" ? "border-primary bg-primary/10" : "border-border")}>
+                <Home className="w-6 h-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-foreground">Home Visit</p>
+                  <p className="text-xs text-muted-foreground">Provider will come to your location</p>
+                </div>
+              </button>
+              <button
+                onClick={() => { setVisitMode("shop_visit"); setStep("description"); }}
+                className={cn("border rounded-xl p-4 text-left transition-all flex items-center gap-3 hover:border-primary",
+                  visitMode === "shop_visit" ? "border-primary bg-primary/10" : "border-border")}>
+                <Store className="w-6 h-6 text-accent-foreground" />
+                <div>
+                  <p className="font-semibold text-foreground">Visit at Shop</p>
+                  <p className="text-xs text-muted-foreground">You go to the provider's shop/location</p>
+                </div>
+              </button>
             </div>
           </div>
         )}
@@ -261,15 +298,25 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
                 rows={3}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium block mb-1.5">Your Address *</label>
-              <Textarea
-                placeholder="Full address - house number, street, landmark, area..."
-                value={customerAddress}
-                onChange={(e) => setCustomerAddress(e.target.value)}
-                rows={2}
-              />
-            </div>
+            {visitMode === "home_visit" && (
+              <div>
+                <label className="text-sm font-medium block mb-1.5">Your Address *</label>
+                <Textarea
+                  placeholder="Full address - house number, street, landmark, area..."
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            )}
+            {visitMode === "shop_visit" && (
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">
+                  📍 <span className="font-medium text-foreground">Provider Location:</span> {provider.address}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">You will visit the provider's shop/location</p>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium block mb-1.5">Your Phone Number *</label>
               <Input
@@ -279,8 +326,12 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
               />
             </div>
             <Button className="w-full" onClick={() => {
-              if (!customerAddress || !customerPhone) {
-                toast({ title: "Required", description: "Please enter your address and phone number.", variant: "destructive" });
+              if (visitMode === "home_visit" && !customerAddress) {
+                toast({ title: "Required", description: "Please enter your address.", variant: "destructive" });
+                return;
+              }
+              if (!customerPhone) {
+                toast({ title: "Required", description: "Please enter your phone number.", variant: "destructive" });
                 return;
               }
               setStep("calendar");
@@ -392,8 +443,10 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
               <p><span className="font-medium">Date:</span> {date && format(date, "PPP")}</p>
               <p><span className="font-medium">Time:</span> {time} ({duration.label})</p>
               <p><span className="font-medium">Payment:</span> {paymentMethod === "razorpay" ? "Online (Razorpay)" : "Cash on Service"}</p>
+              <p><span className="font-medium">Visit Type:</span> {visitMode === "home_visit" ? "🏠 Home Visit" : "🏪 At Provider's Shop"}</p>
               {description && <p><span className="font-medium">Problem:</span> {description}</p>}
-              <p><span className="font-medium">Address:</span> {customerAddress}</p>
+              {visitMode === "home_visit" && <p><span className="font-medium">Address:</span> {customerAddress}</p>}
+              {visitMode === "shop_visit" && <p><span className="font-medium">Shop:</span> {provider.address}</p>}
               <p><span className="font-medium">Phone:</span> {customerPhone}</p>
               <div className="border-t border-border pt-2 mt-2">
                 <p className="text-lg font-bold text-primary">Total: ₹{duration.rate}</p>
