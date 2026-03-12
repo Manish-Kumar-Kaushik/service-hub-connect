@@ -1,41 +1,43 @@
 import {
-  Scissors,
-  Heart,
-  Dumbbell,
-  Briefcase,
-  GraduationCap,
-  Landmark,
-  ShoppingCart,
-  Building2,
-  Home,
-  Car,
-  Stethoscope,
-  PawPrint,
-  Users,
   Wrench,
-  BookOpen,
-  BadgeDollarSign,
+  Zap,
+  SprayCan,
+  Bug,
+  Refrigerator,
+  Paintbrush,
+  Car,
+  Droplets,
+  Heart,
+  Sparkles,
+  Scissors,
+  Hand,
+  Dumbbell,
+  GraduationCap,
+  TreePine,
+  Pill,
+  Activity,
+  Flower2,
 } from "lucide-react";
 
 const categories = [
-  { name: "Salon & Beauty", icon: Scissors },
-  { name: "Barber", icon: Scissors },
-  { name: "Spa", icon: Heart },
-  { name: "Health & Wellness", icon: Stethoscope },
-  { name: "Fitness & Sports", icon: Dumbbell },
-  { name: "Professional Services", icon: Briefcase },
-  { name: "Tutoring Services", icon: BookOpen },
-  { name: "Education & Non-profits", icon: GraduationCap },
-  { name: "Banking & Finance", icon: BadgeDollarSign },
-  { name: "Retail", icon: ShoppingCart },
-  { name: "Real Estate", icon: Building2 },
-  { name: "Communities & Facilities", icon: Users },
-  { name: "Government & Public Sector", icon: Landmark },
-  { name: "Medical Office", icon: Stethoscope },
-  { name: "Pet Services", icon: PawPrint },
-  { name: "Home Services & Cleaning", icon: Home },
-  { name: "Business Operations", icon: Briefcase },
-  { name: "Automotive", icon: Car },
+  { name: "Plumbing", icon: Wrench },
+  { name: "Electrician", icon: Zap },
+  { name: "Cleaning", icon: SprayCan },
+  { name: "Pest Control", icon: Bug },
+  { name: "Appliance Repair", icon: Refrigerator },
+  { name: "Painting & Décor", icon: Paintbrush },
+  { name: "Gardener / Maali", icon: TreePine },
+  { name: "Car Wash & Detailing", icon: Droplets },
+  { name: "Vehicle Repair", icon: Car },
+  { name: "Medicine Delivery", icon: Pill },
+  { name: "Physiotherapy", icon: Activity },
+  { name: "Home Care", icon: Heart },
+  { name: "Spa & Massage", icon: Hand },
+  { name: "Skin Care", icon: Sparkles },
+  { name: "Salon at Home", icon: Scissors },
+  { name: "Mehendi Artist", icon: Flower2 },
+  { name: "Fitness Trainer", icon: Dumbbell },
+  { name: "Home Tutor", icon: GraduationCap },
 ];
 
 const CategoriesSection = () => {
@@ -44,10 +46,10 @@ const CategoriesSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-            We can serve almost any industry segment
+            Services at Your Doorstep
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our appointment booking system is fit for all service-based local businesses, multi-location enterprises, franchises, and more.
+            Book trusted service providers who come to your location — home repairs, beauty, wellness, tutoring and more.
           </p>
         </div>
 
