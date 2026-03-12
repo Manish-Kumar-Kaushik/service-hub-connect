@@ -47,7 +47,7 @@ declare global {
   }
 }
 
-const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDialogProps) => {
+const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open, onOpenChange }: BookingDialogProps) => {
   const [step, setStep] = useState<Step>("actions");
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState("");
@@ -56,6 +56,7 @@ const BookingDialog = ({ provider, serviceName, open, onOpenChange }: BookingDia
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cash">("razorpay");
+  const [visitMode, setVisitMode] = useState<"home_visit" | "shop_visit">("home_visit");
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, userId, userName, userEmail, profile } = useAuth();
   const { toast } = useToast();
