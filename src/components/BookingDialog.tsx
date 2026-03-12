@@ -443,8 +443,10 @@ const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open,
               <p><span className="font-medium">Date:</span> {date && format(date, "PPP")}</p>
               <p><span className="font-medium">Time:</span> {time} ({duration.label})</p>
               <p><span className="font-medium">Payment:</span> {paymentMethod === "razorpay" ? "Online (Razorpay)" : "Cash on Service"}</p>
+              <p><span className="font-medium">Visit Type:</span> {visitMode === "home_visit" ? "🏠 Home Visit" : "🏪 At Provider's Shop"}</p>
               {description && <p><span className="font-medium">Problem:</span> {description}</p>}
-              <p><span className="font-medium">Address:</span> {customerAddress}</p>
+              {visitMode === "home_visit" && <p><span className="font-medium">Address:</span> {customerAddress}</p>}
+              {visitMode === "shop_visit" && <p><span className="font-medium">Shop:</span> {provider.address}</p>}
               <p><span className="font-medium">Phone:</span> {customerPhone}</p>
               <div className="border-t border-border pt-2 mt-2">
                 <p className="text-lg font-bold text-primary">Total: ₹{duration.rate}</p>
