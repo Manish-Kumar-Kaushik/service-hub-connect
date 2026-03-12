@@ -34,6 +34,7 @@ const durationOptions = [
 interface BookingDialogProps {
   provider: CardProvider | null;
   serviceName: string;
+  serviceMode?: ServiceMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
