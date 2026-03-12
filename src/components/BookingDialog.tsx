@@ -70,6 +70,7 @@ const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open,
     setCustomerAddress("");
     setCustomerPhone("");
     setPaymentMethod("razorpay");
+    setVisitMode("home_visit");
     setLoading(false);
   };
 
