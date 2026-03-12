@@ -3,7 +3,7 @@ import {
   Wrench, Zap, TreePine, SprayCan, Bug, Refrigerator, Paintbrush,
   Fuel, CircleDot, Battery, Truck, Droplets, Bike,
   Pill, FlaskConical, Activity,
-  Hand, Scissors, Flower2, Wind,
+  Hand, Scissors, Flower2,
   Dumbbell, GraduationCap,
   type LucideIcon,
 } from "lucide-react";
