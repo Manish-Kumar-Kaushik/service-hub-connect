@@ -298,15 +298,25 @@ const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open,
                 rows={3}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium block mb-1.5">Your Address *</label>
-              <Textarea
-                placeholder="Full address - house number, street, landmark, area..."
-                value={customerAddress}
-                onChange={(e) => setCustomerAddress(e.target.value)}
-                rows={2}
-              />
-            </div>
+            {visitMode === "home_visit" && (
+              <div>
+                <label className="text-sm font-medium block mb-1.5">Your Address *</label>
+                <Textarea
+                  placeholder="Full address - house number, street, landmark, area..."
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            )}
+            {visitMode === "shop_visit" && (
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">
+                  📍 <span className="font-medium text-foreground">Provider Location:</span> {provider.address}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">You will visit the provider's shop/location</p>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium block mb-1.5">Your Phone Number *</label>
               <Input
@@ -316,8 +326,12 @@ const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open,
               />
             </div>
             <Button className="w-full" onClick={() => {
-              if (!customerAddress || !customerPhone) {
-                toast({ title: "Required", description: "Please enter your address and phone number.", variant: "destructive" });
+              if (visitMode === "home_visit" && !customerAddress) {
+                toast({ title: "Required", description: "Please enter your address.", variant: "destructive" });
+                return;
+              }
+              if (!customerPhone) {
+                toast({ title: "Required", description: "Please enter your phone number.", variant: "destructive" });
                 return;
               }
               setStep("calendar");
