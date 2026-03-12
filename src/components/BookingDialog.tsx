@@ -39,7 +39,7 @@ interface BookingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "actions" | "description" | "calendar" | "time" | "duration" | "payment-method" | "confirm" | "success";
+type Step = "actions" | "visit-mode" | "description" | "calendar" | "time" | "duration" | "payment-method" | "confirm" | "success";
 
 declare global {
   interface Window {
