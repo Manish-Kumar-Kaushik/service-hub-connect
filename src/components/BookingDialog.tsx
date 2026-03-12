@@ -255,6 +255,34 @@ const BookingDialog = ({ provider, serviceName, serviceMode = "home_only", open,
             </div>
           </div>
         )}
+        {/* Step: Visit Mode (Home Visit or Shop Visit) */}
+        {step === "visit-mode" && (
+          <div className="space-y-4 pt-2">
+            <label className="text-sm font-medium block">How would you like this service?</label>
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={() => { setVisitMode("home_visit"); setStep("description"); }}
+                className={cn("border rounded-xl p-4 text-left transition-all flex items-center gap-3 hover:border-primary",
+                  visitMode === "home_visit" ? "border-primary bg-primary/10" : "border-border")}>
+                <Home className="w-6 h-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-foreground">Home Visit</p>
+                  <p className="text-xs text-muted-foreground">Provider will come to your location</p>
+                </div>
+              </button>
+              <button
+                onClick={() => { setVisitMode("shop_visit"); setStep("description"); }}
+                className={cn("border rounded-xl p-4 text-left transition-all flex items-center gap-3 hover:border-primary",
+                  visitMode === "shop_visit" ? "border-primary bg-primary/10" : "border-border")}>
+                <Store className="w-6 h-6 text-accent-foreground" />
+                <div>
+                  <p className="font-semibold text-foreground">Visit at Shop</p>
+                  <p className="text-xs text-muted-foreground">You go to the provider's shop/location</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Step: Description & Customer Details */}
         {step === "description" && (
