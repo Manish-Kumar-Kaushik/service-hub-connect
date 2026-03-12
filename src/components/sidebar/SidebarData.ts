@@ -8,10 +8,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type ServiceMode = "home_only" | "both";
+
 export interface ServiceItem {
   label: string;
   icon: LucideIcon;
   query: string;
+  serviceMode: ServiceMode;
 }
 
 export interface ServiceCategory {
