@@ -702,6 +702,9 @@ const ProviderRegister = () => {
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">UPI ID</label>
                   <Input placeholder="example@upi" value={form.upiId} onChange={(e) => setForm({ ...form, upiId: e.target.value })} />
+                  {form.upiId && !upiRegex.test(form.upiId) && (
+                    <p className="text-xs text-destructive mt-1">Valid UPI ID daalo (e.g. name@upi)</p>
+                  )}
                 </div>
               </div>
             )}
