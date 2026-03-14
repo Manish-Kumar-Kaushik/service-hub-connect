@@ -400,7 +400,6 @@ const ProviderRegister = () => {
                     {form.phone && !phoneRegex.test(form.phone) && (
                       <p className="text-xs text-destructive mt-1">Phone number 10 digits ka hona chahiye</p>
                     )}
-                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1.5">Email Address *</label>
