@@ -616,9 +616,11 @@ const ProviderRegister = () => {
                                 <Input
                                   className="h-8 text-sm"
                                   type="number"
+                                  min="1"
                                   placeholder="₹ 0"
                                   value={row.price}
-                                  onChange={(e) => updatePriceRow(row.id, "price", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }}
+                                  onChange={(e) => { const v = e.target.value; if (Number(v) >= 0 || v === "") updatePriceRow(row.id, "price", v); }}
                                 />
                               </TableCell>
                               <TableCell className="p-2">
