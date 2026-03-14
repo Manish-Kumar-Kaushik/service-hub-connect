@@ -395,7 +395,11 @@ const ProviderRegister = () => {
                     <label className="text-sm font-medium text-foreground block mb-1.5">Phone Number *</label>
                     <div className="flex">
                       <span className="flex items-center px-3 bg-muted border border-r-0 border-input rounded-l-md text-sm text-muted-foreground">+91</span>
-                      <Input className="rounded-l-none" placeholder="XXXXX XXXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                      <Input className="rounded-l-none" placeholder="XXXXX XXXXX" value={form.phone} maxLength={10} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); setForm({ ...form, phone: v }); }} />
+                    </div>
+                    {form.phone && !phoneRegex.test(form.phone) && (
+                      <p className="text-xs text-destructive mt-1">Phone number 10 digits ka hona chahiye</p>
+                    )}
                     </div>
                   </div>
                   <div>
