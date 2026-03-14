@@ -148,16 +148,39 @@ const ProviderRegister = () => {
   const selectedCategory = serviceCategories.find((c) => c.title === form.category);
   const isHomeOnlyCategory = HOME_ONLY_CATEGORIES.includes(form.category);
 
+  const phoneRegex = /^\d{10}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  const aadhaarRegex = /^\d{12}$/;
+  const upiRegex = /^[\w.\-]+@[\w]+$/;
+  const bankAccountRegex = /^\d{9,18}$/;
+
   const validateStep = (): boolean => {
     switch (currentStep) {
       case 0:
-        if (!form.firstName || !form.lastName || !form.phone || !form.email) {
+        if (!form.firstName.trim() || !form.lastName.trim() || !form.phone.trim() || !form.email.trim()) {
           toast({ title: "Required", description: "Sabhi fields fill karo - Name, Last Name, Phone, Email.", variant: "destructive" });
+          return false;
+        }
+        if (!nameRegex.test(form.firstName.trim())) {
+          toast({ title: "Invalid", description: "First Name mein sirf letters allowed hain.", variant: "destructive" });
+          return false;
+        }
+        if (!nameRegex.test(form.lastName.trim())) {
+          toast({ title: "Invalid", description: "Last Name mein sirf letters allowed hain.", variant: "destructive" });
+          return false;
+        }
+        if (!phoneRegex.test(form.phone.trim())) {
+          toast({ title: "Invalid", description: "Phone number exactly 10 digits ka hona chahiye.", variant: "destructive" });
+          return false;
+        }
+        if (!emailRegex.test(form.email.trim())) {
+          toast({ title: "Invalid", description: "Valid email address daalo.", variant: "destructive" });
           return false;
         }
         return true;
       case 1:
-        if (!form.shopName || !form.shopAddress) {
+        if (!form.shopName.trim() || !form.shopAddress.trim()) {
           toast({ title: "Required", description: "Shop Name aur Shop Address daalna zaroori hai.", variant: "destructive" });
           return false;
         }
@@ -169,14 +192,30 @@ const ProviderRegister = () => {
           toast({ title: "Required", description: "Service Type select karo.", variant: "destructive" });
           return false;
         }
-        if (servicePrices.some((r) => !r.serviceName || !r.price)) {
+        if (servicePrices.some((r) => !r.serviceName.trim() || !r.price.trim())) {
           toast({ title: "Required", description: "Pricing table mein sabhi service name aur price daalo.", variant: "destructive" });
+          return false;
+        }
+        if (servicePrices.some((r) => Number(r.price) <= 0)) {
+          toast({ title: "Invalid", description: "Price 0 se zyada hona chahiye.", variant: "destructive" });
           return false;
         }
         return true;
       case 2:
+        if (form.aadhaarNumber.trim() && !aadhaarRegex.test(form.aadhaarNumber.replace(/\s/g, ""))) {
+          toast({ title: "Invalid", description: "Aadhaar number 12 digits ka hona chahiye.", variant: "destructive" });
+          return false;
+        }
         return true;
       case 3:
+        if (form.bankAccount.trim() && !bankAccountRegex.test(form.bankAccount.trim())) {
+          toast({ title: "Invalid", description: "Bank account number 9-18 digits ka hona chahiye.", variant: "destructive" });
+          return false;
+        }
+        if (form.upiId.trim() && !upiRegex.test(form.upiId.trim())) {
+          toast({ title: "Invalid", description: "Valid UPI ID daalo (e.g. name@upi).", variant: "destructive" });
+          return false;
+        }
         return true;
       case 4:
         if (!form.password || !form.confirmPassword) {
