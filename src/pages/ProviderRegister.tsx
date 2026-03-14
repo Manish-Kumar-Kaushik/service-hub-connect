@@ -387,7 +387,7 @@ const ProviderRegister = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1.5">Last Name *</label>
-                    <Input placeholder="Aapka last name" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+                    <Input placeholder="Aapka last name" value={form.lastName} onChange={(e) => { const v = e.target.value.replace(/[^a-zA-Z\s]/g, ""); setForm({ ...form, lastName: v }); }} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
