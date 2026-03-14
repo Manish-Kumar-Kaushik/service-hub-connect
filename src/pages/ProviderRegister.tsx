@@ -659,7 +659,10 @@ const ProviderRegister = () => {
                 </h2>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">Aadhaar Card Number</label>
-                  <Input placeholder="XXXX XXXX XXXX" maxLength={14} value={form.aadhaarNumber} onChange={(e) => setForm({ ...form, aadhaarNumber: e.target.value })} />
+                  <Input placeholder="XXXX XXXX XXXX" maxLength={14} value={form.aadhaarNumber} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 12); setForm({ ...form, aadhaarNumber: v }); }} />
+                  {form.aadhaarNumber && form.aadhaarNumber.length > 0 && form.aadhaarNumber.length < 12 && (
+                    <p className="text-xs text-destructive mt-1">Aadhaar number 12 digits ka hona chahiye</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">Aadhaar Card Photo</label>
