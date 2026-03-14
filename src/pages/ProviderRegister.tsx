@@ -148,16 +148,39 @@ const ProviderRegister = () => {
   const selectedCategory = serviceCategories.find((c) => c.title === form.category);
   const isHomeOnlyCategory = HOME_ONLY_CATEGORIES.includes(form.category);
 
+  const phoneRegex = /^\d{10}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  const aadhaarRegex = /^\d{12}$/;
+  const upiRegex = /^[\w.\-]+@[\w]+$/;
+  const bankAccountRegex = /^\d{9,18}$/;
+
   const validateStep = (): boolean => {
     switch (currentStep) {
       case 0:
-        if (!form.firstName || !form.lastName || !form.phone || !form.email) {
+        if (!form.firstName.trim() || !form.lastName.trim() || !form.phone.trim() || !form.email.trim()) {
           toast({ title: "Required", description: "Sabhi fields fill karo - Name, Last Name, Phone, Email.", variant: "destructive" });
+          return false;
+        }
+        if (!nameRegex.test(form.firstName.trim())) {
+          toast({ title: "Invalid", description: "First Name mein sirf letters allowed hain.", variant: "destructive" });
+          return false;
+        }
+        if (!nameRegex.test(form.lastName.trim())) {
+          toast({ title: "Invalid", description: "Last Name mein sirf letters allowed hain.", variant: "destructive" });
+          return false;
+        }
+        if (!phoneRegex.test(form.phone.trim())) {
+          toast({ title: "Invalid", description: "Phone number exactly 10 digits ka hona chahiye.", variant: "destructive" });
+          return false;
+        }
+        if (!emailRegex.test(form.email.trim())) {
+          toast({ title: "Invalid", description: "Valid email address daalo.", variant: "destructive" });
           return false;
         }
         return true;
       case 1:
-        if (!form.shopName || !form.shopAddress) {
+        if (!form.shopName.trim() || !form.shopAddress.trim()) {
           toast({ title: "Required", description: "Shop Name aur Shop Address daalna zaroori hai.", variant: "destructive" });
           return false;
         }
@@ -169,14 +192,30 @@ const ProviderRegister = () => {
           toast({ title: "Required", description: "Service Type select karo.", variant: "destructive" });
           return false;
         }
-        if (servicePrices.some((r) => !r.serviceName || !r.price)) {
+        if (servicePrices.some((r) => !r.serviceName.trim() || !r.price.trim())) {
           toast({ title: "Required", description: "Pricing table mein sabhi service name aur price daalo.", variant: "destructive" });
+          return false;
+        }
+        if (servicePrices.some((r) => Number(r.price) <= 0)) {
+          toast({ title: "Invalid", description: "Price 0 se zyada hona chahiye.", variant: "destructive" });
           return false;
         }
         return true;
       case 2:
+        if (form.aadhaarNumber.trim() && !aadhaarRegex.test(form.aadhaarNumber.replace(/\s/g, ""))) {
+          toast({ title: "Invalid", description: "Aadhaar number 12 digits ka hona chahiye.", variant: "destructive" });
+          return false;
+        }
         return true;
       case 3:
+        if (form.bankAccount.trim() && !bankAccountRegex.test(form.bankAccount.trim())) {
+          toast({ title: "Invalid", description: "Bank account number 9-18 digits ka hona chahiye.", variant: "destructive" });
+          return false;
+        }
+        if (form.upiId.trim() && !upiRegex.test(form.upiId.trim())) {
+          toast({ title: "Invalid", description: "Valid UPI ID daalo (e.g. name@upi).", variant: "destructive" });
+          return false;
+        }
         return true;
       case 4:
         if (!form.password || !form.confirmPassword) {
@@ -344,11 +383,11 @@ const ProviderRegister = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1.5">First Name *</label>
-                    <Input placeholder="Aapka first name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+                    <Input placeholder="Aapka first name" value={form.firstName} onChange={(e) => { const v = e.target.value.replace(/[^a-zA-Z\s]/g, ""); setForm({ ...form, firstName: v }); }} />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1.5">Last Name *</label>
-                    <Input placeholder="Aapka last name" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+                    <Input placeholder="Aapka last name" value={form.lastName} onChange={(e) => { const v = e.target.value.replace(/[^a-zA-Z\s]/g, ""); setForm({ ...form, lastName: v }); }} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -356,8 +395,11 @@ const ProviderRegister = () => {
                     <label className="text-sm font-medium text-foreground block mb-1.5">Phone Number *</label>
                     <div className="flex">
                       <span className="flex items-center px-3 bg-muted border border-r-0 border-input rounded-l-md text-sm text-muted-foreground">+91</span>
-                      <Input className="rounded-l-none" placeholder="XXXXX XXXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                      <Input className="rounded-l-none" placeholder="XXXXX XXXXX" value={form.phone} maxLength={10} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); setForm({ ...form, phone: v }); }} />
                     </div>
+                    {form.phone && !phoneRegex.test(form.phone) && (
+                      <p className="text-xs text-destructive mt-1">Phone number 10 digits ka hona chahiye</p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1.5">Email Address *</label>
@@ -574,9 +616,11 @@ const ProviderRegister = () => {
                                 <Input
                                   className="h-8 text-sm"
                                   type="number"
+                                  min="1"
                                   placeholder="₹ 0"
                                   value={row.price}
-                                  onChange={(e) => updatePriceRow(row.id, "price", e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "-" || e.key === "e") e.preventDefault(); }}
+                                  onChange={(e) => { const v = e.target.value; if (Number(v) >= 0 || v === "") updatePriceRow(row.id, "price", v); }}
                                 />
                               </TableCell>
                               <TableCell className="p-2">
@@ -615,7 +659,10 @@ const ProviderRegister = () => {
                 </h2>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">Aadhaar Card Number</label>
-                  <Input placeholder="XXXX XXXX XXXX" maxLength={14} value={form.aadhaarNumber} onChange={(e) => setForm({ ...form, aadhaarNumber: e.target.value })} />
+                  <Input placeholder="XXXX XXXX XXXX" maxLength={14} value={form.aadhaarNumber} onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 12); setForm({ ...form, aadhaarNumber: v }); }} />
+                  {form.aadhaarNumber && form.aadhaarNumber.length > 0 && form.aadhaarNumber.length < 12 && (
+                    <p className="text-xs text-destructive mt-1">Aadhaar number 12 digits ka hona chahiye</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">Aadhaar Card Photo</label>
@@ -647,11 +694,17 @@ const ProviderRegister = () => {
                 <p className="text-sm text-muted-foreground">Ye details isliye chahiye taki service ke baad aapko payment mil sake.</p>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">Bank Account Number</label>
-                  <Input placeholder="Account number daalo" value={form.bankAccount} onChange={(e) => setForm({ ...form, bankAccount: e.target.value })} />
+                  <Input placeholder="Account number daalo (9-18 digits)" value={form.bankAccount} maxLength={18} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); setForm({ ...form, bankAccount: v }); }} />
+                  {form.bankAccount && !bankAccountRegex.test(form.bankAccount) && (
+                    <p className="text-xs text-destructive mt-1">Bank account number 9-18 digits ka hona chahiye</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">UPI ID</label>
                   <Input placeholder="example@upi" value={form.upiId} onChange={(e) => setForm({ ...form, upiId: e.target.value })} />
+                  {form.upiId && !upiRegex.test(form.upiId) && (
+                    <p className="text-xs text-destructive mt-1">Valid UPI ID daalo (e.g. name@upi)</p>
+                  )}
                 </div>
               </div>
             )}
