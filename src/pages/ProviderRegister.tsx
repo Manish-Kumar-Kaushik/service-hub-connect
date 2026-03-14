@@ -694,7 +694,10 @@ const ProviderRegister = () => {
                 <p className="text-sm text-muted-foreground">Ye details isliye chahiye taki service ke baad aapko payment mil sake.</p>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">Bank Account Number</label>
-                  <Input placeholder="Account number daalo" value={form.bankAccount} onChange={(e) => setForm({ ...form, bankAccount: e.target.value })} />
+                  <Input placeholder="Account number daalo (9-18 digits)" value={form.bankAccount} maxLength={18} onChange={(e) => { const v = e.target.value.replace(/\D/g, ""); setForm({ ...form, bankAccount: v }); }} />
+                  {form.bankAccount && !bankAccountRegex.test(form.bankAccount) && (
+                    <p className="text-xs text-destructive mt-1">Bank account number 9-18 digits ka hona chahiye</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1.5">UPI ID</label>
