@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Check, X, MapPin, Phone, FileText, Clock, Calendar, CreditCard, User, Send, CheckCircle, LogOut } from "lucide-react";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { format, subDays, eachDayOfInterval, isSameDay } from "date-fns";
+
+import DashboardHeader from "@/components/provider-dashboard/DashboardHeader";
+import StatsCards from "@/components/provider-dashboard/StatsCards";
+import { ViewProfileModal, EditProfileModal, ChangePasswordModal } from "@/components/provider-dashboard/ProfileModals";
+import BookingsTab from "@/components/provider-dashboard/BookingsTab";
+import MyServicesTab from "@/components/provider-dashboard/MyServicesTab";
+import WalletTab from "@/components/provider-dashboard/WalletTab";
 import QuoteDialog from "@/components/QuoteDialog";
-import ProviderLocationSharer from "@/components/ProviderLocationSharer";
-import EarningsAnalytics from "@/components/EarningsAnalytics";
 
 interface ProviderBooking {
   id: string;
@@ -29,158 +32,170 @@ interface ProviderBooking {
   created_at: string;
 }
 
+interface ProviderProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  address: string | null;
+  category: string | null;
+  experience_years: number | null;
+  avatar_url: string | null;
+  shop_name: string | null;
+  services_offered: string[] | null;
+  is_active: boolean | null;
+  is_verified: boolean | null;
+}
+
 const ProviderDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [bookings, setBookings] = useState<ProviderBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [providerExists, setProviderExists] = useState(false);
-  const [quoteBooking, setQuoteBooking] = useState<ProviderBooking | null>(null);
-  const [earnings, setEarnings] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
 
-  // Dummy provider auth from localStorage
+  // Modals
+  const [viewProfile, setViewProfile] = useState(false);
+  const [editProfile, setEditProfile] = useState(false);
+  const [changePwd, setChangePwd] = useState(false);
+  const [quoteBooking, setQuoteBooking] = useState<ProviderBooking | null>(null);
+
   const dummyUserId = localStorage.getItem("dummy_provider_id");
-  const dummyName = localStorage.getItem("dummy_provider_name");
 
   useEffect(() => {
     if (!dummyUserId) {
       navigate("/provider-signup");
       return;
     }
-    checkProviderAndFetch();
+    fetchData();
   }, [dummyUserId]);
 
-  // Realtime notifications listener
+  // Realtime
   useEffect(() => {
     if (!dummyUserId) return;
     const channel = supabase
-      .channel("provider-notifications")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
-        (payload: any) => {
-          if (payload.new.user_id === dummyUserId) {
-            toast({ title: "🔔 New Job!", description: payload.new.message });
-            checkProviderAndFetch();
-          }
+      .channel("provider-dashboard-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => fetchData())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload: any) => {
+        if (payload.new.user_id === dummyUserId) {
+          toast({ title: "🔔 Notification", description: payload.new.message });
+          setNotificationCount((c) => c + 1);
         }
-      )
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [dummyUserId]);
 
-  const checkProviderAndFetch = async () => {
+  const fetchData = async () => {
     if (!dummyUserId) return;
     setLoading(true);
 
-    const { data: provider } = await supabase
+    const { data: prov } = await supabase
       .from("service_providers")
       .select("*")
       .eq("user_id", dummyUserId)
       .maybeSingle();
 
-    if (!provider) {
-      setProviderExists(false);
+    if (!prov) {
       setLoading(false);
+      navigate("/provider-signup");
       return;
     }
-    setProviderExists(true);
+    setProvider(prov as ProviderProfile);
 
-    const { data: allBookings } = await supabase
+    const { data: bks } = await supabase
       .from("bookings")
       .select("*")
-      .eq("provider_id", provider.id)
+      .eq("provider_id", prov.id)
       .order("created_at", { ascending: false });
+    setBookings((bks as ProviderBooking[]) || []);
 
-    const bks = (allBookings as ProviderBooking[]) || [];
-    setBookings(bks);
-    setEarnings(
-      bks.filter((b) => b.provider_status === "accepted" && b.payment_status === "paid")
-        .reduce((sum, b) => sum + (b.amount || 0), 0)
-    );
+    // Notification count
+    const { count } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", dummyUserId)
+      .eq("is_read", false);
+    setNotificationCount(count || 0);
+
     setLoading(false);
   };
 
-
-  const handleAccept = async (booking: ProviderBooking) => {
-    const { error } = await supabase
-      .from("bookings")
-      .update({ provider_status: "accepted", status: "accepted" })
-      .eq("id", booking.id);
-
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-      return;
-    }
-
+  const handleAccept = async (b: ProviderBooking) => {
+    await supabase.from("bookings").update({ provider_status: "accepted", status: "accepted" }).eq("id", b.id);
     await supabase.from("notifications").insert({
-      user_id: booking.user_id,
-      type: "booking_accepted",
+      user_id: b.user_id, type: "booking_accepted",
       title: "Service Provider Accepted!",
-      message: `Your ${booking.service_name} booking has been accepted. The provider will visit you soon.`,
-      booking_id: booking.id,
+      message: `Your ${b.service_name} booking has been accepted.`,
+      booking_id: b.id,
     });
-
-    toast({ title: "✅ Job Accepted!", description: "Customer has been notified." });
-    checkProviderAndFetch();
+    toast({ title: "✅ Job Accepted!" });
+    fetchData();
   };
 
-  const handleReject = async (booking: ProviderBooking) => {
-    await supabase.from("bookings").update({ provider_status: "rejected", provider_id: null }).eq("id", booking.id);
-
-    const { data: nextProviders } = await supabase
+  const handleReject = async (b: ProviderBooking) => {
+    await supabase.from("bookings").update({ provider_status: "rejected", provider_id: null }).eq("id", b.id);
+    const { data: next } = await supabase
       .from("service_providers")
       .select("*")
-      .contains("services_offered", [booking.service_name])
+      .contains("services_offered", [b.service_name])
       .eq("is_active", true)
       .neq("user_id", dummyUserId!)
       .limit(1);
 
-    if (nextProviders && nextProviders.length > 0) {
-      const next = nextProviders[0];
+    if (next && next.length > 0) {
+      const np = next[0];
       await supabase.from("bookings").update({
-        provider_id: next.id,
-        provider_name: next.name,
-        provider_phone: next.phone,
-        provider_email: next.email,
-        provider_address: next.address,
-        provider_status: "pending",
-      }).eq("id", booking.id);
-
+        provider_id: np.id, provider_name: np.name, provider_phone: np.phone,
+        provider_email: np.email, provider_address: np.address, provider_status: "pending",
+      }).eq("id", b.id);
       await supabase.from("notifications").insert({
-        user_id: next.user_id,
-        type: "new_job",
-        title: "🔔 New Job Request!",
-        message: `New ${booking.service_name} job available. Check your dashboard.`,
-        booking_id: booking.id,
+        user_id: np.user_id, type: "new_job",
+        title: "🔔 New Job!", message: `New ${b.service_name} job available.`,
+        booking_id: b.id,
       });
-
-      toast({ title: "Job Rejected", description: "Request forwarded to next available provider." });
-    } else {
-      await supabase.from("notifications").insert({
-        user_id: booking.user_id,
-        type: "no_provider",
-        title: "No Provider Available",
-        message: `Sorry, no provider is currently available for ${booking.service_name}. Please try again later.`,
-        booking_id: booking.id,
-      });
-      toast({ title: "Job Rejected", description: "No other provider available." });
     }
-
-    checkProviderAndFetch();
+    toast({ title: "Job declined" });
+    fetchData();
   };
 
-  const handleMarkComplete = async (booking: ProviderBooking) => {
-    await supabase.from("bookings").update({ status: "completed", payment_status: booking.payment_method === "cash" ? "paid" : booking.payment_status }).eq("id", booking.id);
+  const handleMarkComplete = async (b: ProviderBooking) => {
+    await supabase.from("bookings").update({
+      status: "completed",
+      payment_status: b.payment_method === "cash" ? "paid" : b.payment_status,
+    }).eq("id", b.id);
     await supabase.from("notifications").insert({
-      user_id: booking.user_id,
-      type: "service_completed",
+      user_id: b.user_id, type: "service_completed",
       title: "Service Completed!",
-      message: `Your ${booking.service_name} service is marked as completed. Please rate your experience.`,
-      booking_id: booking.id,
+      message: `Your ${b.service_name} service is completed. Please rate your experience.`,
+      booking_id: b.id,
     });
+
+    // Credit wallet
+    if (b.amount && provider) {
+      await supabase.from("wallet_transactions").insert({
+        provider_id: provider.id, type: "credit",
+        amount: b.amount, description: `Payment for ${b.service_name}`,
+        status: "completed",
+      });
+      // Update wallet balance
+      const { data: w } = await supabase
+        .from("provider_wallets")
+        .select("*")
+        .eq("provider_id", provider.id)
+        .maybeSingle();
+      if (w) {
+        await supabase.from("provider_wallets").update({
+          balance: (w as any).balance + b.amount,
+          total_earned: (w as any).total_earned + b.amount,
+        }).eq("provider_id", provider.id);
+      }
+    }
+
     toast({ title: "✅ Service Completed!" });
-    checkProviderAndFetch();
+    fetchData();
   };
 
   const handleLogout = () => {
@@ -189,169 +204,134 @@ const ProviderDashboard = () => {
     navigate("/provider-signup");
   };
 
-  const statusColor = (status: string | null) => {
-    switch (status) {
-      case "accepted": return "bg-green-100 text-green-700";
-      case "rejected": return "bg-red-100 text-red-700";
-      default: return "bg-yellow-100 text-yellow-700";
-    }
-  };
+  // Stats
+  const today = format(new Date(), "yyyy-MM-dd");
+  const newRequests = bookings.filter((b) => !b.provider_status || b.provider_status === "pending").length;
+  const todayJobs = bookings.filter((b) => b.booking_date === today).length;
+  const completedJobs = bookings.filter((b) => b.status === "completed").length;
+  const walletBalance = bookings
+    .filter((b) => b.status === "completed" && b.payment_status === "paid")
+    .reduce((s, b) => s + (b.amount || 0), 0);
 
-  const bookingStatusColor = (status: string) => {
-    switch (status) {
-      case "completed": return "bg-green-100 text-green-700";
-      case "in_progress": return "bg-blue-100 text-blue-700";
-      case "quote_sent": return "bg-purple-100 text-purple-700";
-      case "cancelled": return "bg-red-100 text-red-700";
-      default: return "bg-yellow-100 text-yellow-700";
-    }
-  };
+  // Earnings chart (last 7 days)
+  const chartData = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() }).map((day) => {
+    const dayEarnings = bookings
+      .filter((b) => b.status === "completed" && isSameDay(new Date(b.created_at), day))
+      .reduce((s, b) => s + (b.amount || 0), 0);
+    return { day: format(day, "EEE"), earnings: dayEarnings };
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-20 px-4 max-w-4xl mx-auto pb-12">
-        <div className="flex items-center justify-between mb-2">
-          <Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate("/")}>
-            <ArrowLeft className="w-4 h-4" /> Back
-          </Button>
-          <div className="flex items-center gap-2">
-            {dummyName && (
-              <Badge variant="outline" className="text-sm py-1 px-3">
-                {dummyName}
-              </Badge>
-            )}
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleLogout}>
-              <LogOut className="w-4 h-4" /> Logout
-            </Button>
+      <DashboardHeader
+        providerName={provider?.name || "Provider"}
+        avatarUrl={provider?.avatar_url}
+        notificationCount={notificationCount}
+        onViewProfile={() => setViewProfile(true)}
+        onEditProfile={() => setEditProfile(true)}
+        onChangePassword={() => setChangePwd(true)}
+        onNotifications={() => {}}
+        onLogout={handleLogout}
+      />
+
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Stats */}
+        <StatsCards
+          newRequests={newRequests}
+          todayJobs={todayJobs}
+          walletBalance={walletBalance}
+          completedJobs={completedJobs}
+        />
+
+        {/* Earnings Chart */}
+        <div className="bg-card border border-border rounded-xl p-5 shadow-card">
+          <h3 className="font-semibold text-foreground mb-4">Earnings - Last 7 Days</h3>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="day" tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₹${v}`} className="text-muted-foreground" />
+                <Tooltip
+                  contentStyle={{ borderRadius: "0.75rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: "12px" }}
+                  formatter={(v: number) => [`₹${v.toLocaleString()}`, "Earnings"]}
+                />
+                <Area type="monotone" dataKey="earnings" stroke="hsl(var(--primary))" fill="url(#earningsGrad)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Bell className="w-6 h-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Provider Dashboard</h1>
-          </div>
-          {providerExists && (
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Total Earnings</p>
-              <p className="text-lg font-bold text-primary">₹{earnings.toLocaleString()}</p>
-            </div>
-          )}
-        </div>
+        {/* Tabs */}
+        <Tabs defaultValue="bookings" className="w-full">
+          <TabsList className="w-full grid grid-cols-3 h-12 rounded-xl bg-muted p-1">
+            <TabsTrigger value="bookings" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Bookings
+            </TabsTrigger>
+            <TabsTrigger value="services" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              My Services
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Wallet
+            </TabsTrigger>
+          </TabsList>
 
-        {loading ? (
-          <p className="text-muted-foreground">Loading...</p>
-        ) : !providerExists ? (
-          <div className="text-center py-16 space-y-4">
-            <p className="text-muted-foreground text-lg">You are not a registered service provider yet.</p>
-            <Button onClick={() => navigate("/provider-signup")}>Register as Provider</Button>
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="text-center py-16">
-            <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground text-lg">No new jobs available yet.</p>
-            <p className="text-sm text-muted-foreground mt-2">When a customer books your service, it will appear here in real-time.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Earnings & Services Analytics */}
-            {earnings > 0 && (
-              <EarningsAnalytics bookings={bookings} title="My Earnings & Services" />
-            )}
-            {bookings.map((b) => (
-              <div key={b.id} className="border border-border rounded-xl p-5 bg-card space-y-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h3 className="font-semibold text-foreground text-base">{b.service_name}</h3>
-                  <div className="flex gap-2">
-                    <Badge className={statusColor(b.provider_status)}>
-                      {b.provider_status === "accepted" ? "Accepted" : b.provider_status === "rejected" ? "Rejected" : "Pending"}
-                    </Badge>
-                    <Badge className={bookingStatusColor(b.status)}>
-                      {b.status.replace("_", " ")}
-                    </Badge>
-                  </div>
-                </div>
+          <TabsContent value="bookings" className="mt-4">
+            <BookingsTab
+              bookings={bookings}
+              onAccept={handleAccept}
+              onReject={handleReject}
+              onSendQuote={(b) => setQuoteBooking(b)}
+              onMarkComplete={handleMarkComplete}
+            />
+          </TabsContent>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  <p className="flex items-center gap-1.5 text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5" /> {b.booking_date}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5" /> {b.booking_time}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-muted-foreground">
-                    <CreditCard className="w-3.5 h-3.5" />
-                    {b.payment_method === "cash" ? "Cash on Service" : "Razorpay"}
-                    {b.amount && <span className="text-primary font-bold ml-1">₹{b.amount}</span>}
-                  </p>
-                </div>
+          <TabsContent value="services" className="mt-4">
+            {provider && <MyServicesTab providerId={provider.id} />}
+          </TabsContent>
 
-                {b.provider_status === "accepted" && (
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
-                    <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
-                      <User className="w-4 h-4" /> Customer Details
-                    </p>
-                    {b.customer_phone && (
-                      <p className="text-sm flex items-center gap-1.5 text-foreground">
-                        <Phone className="w-3.5 h-3.5 text-muted-foreground" /> {b.customer_phone}
-                      </p>
-                    )}
-                    {b.customer_address && (
-                      <p className="text-sm flex items-center gap-1.5 text-foreground">
-                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" /> {b.customer_address}
-                      </p>
-                    )}
-                    {b.description && (
-                      <div className="text-sm">
-                        <p className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                          <FileText className="w-3.5 h-3.5" /> Problem:
-                        </p>
-                        <p className="text-foreground bg-background rounded p-2">{b.description}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+          <TabsContent value="wallet" className="mt-4">
+            {provider && <WalletTab providerId={provider.id} />}
+          </TabsContent>
+        </Tabs>
+      </main>
 
-                <div className="flex gap-3 pt-2 flex-wrap">
-                  {(!b.provider_status || b.provider_status === "pending") && (
-                    <>
-                      <Button className="flex-1 gap-2" onClick={() => handleAccept(b)}>
-                        <Check className="w-4 h-4" /> Accept
-                      </Button>
-                      <Button variant="outline" className="flex-1 gap-2 text-destructive" onClick={() => handleReject(b)}>
-                        <X className="w-4 h-4" /> Reject
-                      </Button>
-                    </>
-                  )}
-
-                  {b.provider_status === "accepted" && b.status !== "completed" && b.status !== "quote_sent" && b.status !== "in_progress" && (
-                    <>
-                      <Button variant="outline" className="gap-2" onClick={() => setQuoteBooking(b)}>
-                        <Send className="w-4 h-4" /> Send Quote
-                      </Button>
-                      <ProviderLocationSharer bookingId={b.id} />
-                    </>
-                  )}
-
-                  {b.provider_status === "accepted" && (b.status === "in_progress" || b.status === "quote_sent") && (
-                    <>
-                      <Button className="gap-2" onClick={() => handleMarkComplete(b)}>
-                        <CheckCircle className="w-4 h-4" /> Mark Complete
-                      </Button>
-                      <ProviderLocationSharer bookingId={b.id} />
-                    </>
-                  )}
-                </div>
-
-                <p className="text-xs text-muted-foreground pt-1">
-                  Booked: {format(new Date(b.created_at), "dd MMM yyyy, hh:mm a")}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Profile Modals */}
+      {provider && (
+        <>
+          <ViewProfileModal
+            open={viewProfile}
+            onOpenChange={setViewProfile}
+            provider={provider}
+            onEdit={() => { setViewProfile(false); setEditProfile(true); }}
+          />
+          <EditProfileModal
+            open={editProfile}
+            onOpenChange={setEditProfile}
+            provider={provider}
+            onSaved={fetchData}
+          />
+          <ChangePasswordModal
+            open={changePwd}
+            onOpenChange={setChangePwd}
+            providerId={provider.id}
+          />
+        </>
+      )}
 
       {quoteBooking && (
         <QuoteDialog
@@ -359,7 +339,7 @@ const ProviderDashboard = () => {
           serviceName={quoteBooking.service_name}
           open={!!quoteBooking}
           onOpenChange={(open) => !open && setQuoteBooking(null)}
-          onQuoteSent={checkProviderAndFetch}
+          onQuoteSent={fetchData}
         />
       )}
     </div>
