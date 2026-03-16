@@ -190,6 +190,78 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_services: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          price: number
+          provider_id: string
+          service_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          price?: number
+          provider_id: string
+          service_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          price?: number
+          provider_id?: string
+          service_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_wallets: {
+        Row: {
+          balance: number
+          bank_account: string | null
+          bank_name: string | null
+          created_at: string
+          id: string
+          ifsc_code: string | null
+          provider_id: string
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+          upi_id: string | null
+        }
+        Insert: {
+          balance?: number
+          bank_account?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          ifsc_code?: string | null
+          provider_id: string
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Update: {
+          balance?: number
+          bank_account?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          ifsc_code?: string | null
+          provider_id?: string
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Relationships: []
+      }
       quotes: {
         Row: {
           amount: number
@@ -335,6 +407,36 @@ export type Database = {
           upi_id?: string | null
           user_id?: string
           verification_status?: string | null
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          provider_id: string
+          status: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          provider_id: string
+          status?: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          provider_id?: string
+          status?: string
+          type?: string
         }
         Relationships: []
       }
